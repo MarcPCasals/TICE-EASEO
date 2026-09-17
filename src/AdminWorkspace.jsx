@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle,
+  ChatCircleDots,
   FileText,
   FloppyDisk,
   ImagesSquare,
@@ -17,6 +18,7 @@ import {
 } from "@phosphor-icons/react";
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "./lib/firebase";
+import ConsultationInbox from "./ConsultationInbox";
 
 const publicationTypes = [
   { id: "video", label: "Vídeo", publicLabel: "Videotutorial", icon: VideoCamera },
@@ -69,7 +71,7 @@ function urlLabel(type) {
   return null;
 }
 
-export default function AdminWorkspace({ user, onClose, onPublicationSaved }) {
+export default function AdminWorkspace({ user, onClose, onPublicationSaved, section, onSectionChange, consultations, onUpdateConsultation }) {
   const [form, setForm] = useState(initialForm);
   const [publicationId, setPublicationId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -149,10 +151,15 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved }) {
 
   return (
     <main className="admin-workspace">
-      <div className="admin-breadcrumbs"><button type="button" onClick={onClose}>Espai de gestió</button><span>›</span><strong>Nova publicació</strong></div>
+      <div className="admin-breadcrumbs"><button type="button" onClick={onClose}>Espai de gestió</button><span>›</span><strong>{section === "consultations" ? "Consultes" : "Nova publicació"}</strong></div>
       <button className="back-to-site" type="button" onClick={onClose}><ArrowLeft /> Tornar al web</button>
 
-      <section className="publication-studio">
+      <div className="admin-section-tabs" role="tablist" aria-label="Apartats de gestió">
+        <button className={section === "publications" ? "selected" : ""} type="button" role="tab" aria-selected={section === "publications"} onClick={() => onSectionChange("publications")}><FileText /> Publicacions</button>
+        <button className={section === "consultations" ? "selected" : ""} type="button" role="tab" aria-selected={section === "consultations"} onClick={() => onSectionChange("consultations")}><ChatCircleDots /> Consultes {consultations.some((item) => item.status === "new") && <span>{consultations.filter((item) => item.status === "new").length}</span>}</button>
+      </div>
+
+      {section === "consultations" ? <ConsultationInbox consultations={consultations} onUpdateStatus={onUpdateConsultation} /> : <section className="publication-studio">
         <div className="publication-editor">
           <span className="content-type">Espai de gestió</span>
           <h1>Contingut</h1>
@@ -203,7 +210,7 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved }) {
             <div className="preview-meta"><span>{form.category || "Temàtica"}</span><span>{keywords.length ? keywords.join(" · ") : "Paraules clau"}</span></div>
           </div>
         </aside>
-      </section>
+      </section>}
     </main>
   );
 }

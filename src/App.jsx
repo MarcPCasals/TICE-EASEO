@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BookOpen,
   Brain,
+  BellRinging,
   ChartBar,
   CheckCircle,
   Copy,
@@ -18,12 +19,17 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import { addDoc, collection, onSnapshot, query as firestoreQuery, serverTimestamp, where } from "firebase/firestore";
+import { addDoc, collection, doc, onSnapshot, query as firestoreQuery, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { auth, db, googleProvider } from "./lib/firebase";
 import AdminWorkspace from "./AdminWorkspace";
 
 const ADMIN_EMAIL = "mperezc@educand.ad";
 const previewUser = { displayName: "Marc Pérez", email: ADMIN_EMAIL, photoURL: "" };
+const previewConsultations = [
+  { id: "consulta-demo-1", name: "Laia M.", email: "laia.m@educand.ad", topic: "Autenticació de dos passos", message: "He activat la verificació de dos passos, però no sé com afegir el meu telèfon nou. Em podries indicar on es canvia?", status: "new", createdAt: new Date("2026-09-17T18:42:00+02:00") },
+  { id: "consulta-demo-2", name: "Jordi P.", email: "jordi.p@educand.ad", topic: "Gemini o ChatGPT", message: "Per preparar activitats amb documents del Drive, quina eina em recomanes fer servir i per què?", status: "read", createdAt: new Date("2026-09-17T12:18:00+02:00") },
+  { id: "consulta-demo-3", name: "Marta R.", email: "marta.r@educand.ad", topic: "Compartir una plantilla", message: "Ja he pogut duplicar la plantilla i adaptar-la al meu grup. Moltes gràcies!", status: "resolved", createdAt: new Date("2026-09-16T16:05:00+02:00") },
+];
 
 const resources = [
   {
@@ -187,6 +193,17 @@ function ConsultationDialog({ user, context, onClose }) {
   );
 }
 
+function ConsultationToast({ consultation, onAccept, onOpen }) {
+  if (!consultation) return null;
+  return (
+    <aside className="consultation-toast" role="status" aria-live="polite">
+      <span className="toast-icon"><BellRinging weight="fill" /></span>
+      <div className="toast-copy"><small>Nova consulta</small><strong>{consultation.name}</strong><span>{consultation.topic}</span></div>
+      <div className="toast-actions"><button type="button" onClick={onAccept}>D’acord</button><button type="button" onClick={onOpen}>Llegir-la sencera <ArrowRight /></button></div>
+    </aside>
+  );
+}
+
 function App() {
   const [user, setUser] = useState(import.meta.env.DEV ? previewUser : null);
   const [authReady, setAuthReady] = useState(import.meta.env.DEV);
@@ -198,8 +215,14 @@ function App() {
   const [selectedResource, setSelectedResource] = useState(null);
   const [consultationContext, setConsultationContext] = useState(null);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [adminSection, setAdminSection] = useState("publications");
   const [publishedResources, setPublishedResources] = useState([]);
+  const [consultations, setConsultations] = useState(import.meta.env.DEV ? previewConsultations : []);
+  const [toastConsultationId, setToastConsultationId] = useState(null);
   const searchRef = useRef(null);
+  const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL;
+  const unreadConsultations = consultations.filter((consultation) => consultation.status === "new");
+  const toastConsultation = consultations.find((consultation) => consultation.id === toastConsultationId) || null;
 
   useEffect(() => {
     if (import.meta.env.DEV) return undefined;
@@ -239,6 +262,58 @@ function App() {
       setPublishedResources(entries);
     });
   }, [user]);
+
+  useEffect(() => {
+    if (!isAdmin || import.meta.env.DEV) return undefined;
+    return onSnapshot(collection(db, "consultations"), (snapshot) => {
+      const entries = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() })).sort((a, b) => {
+        const aDate = a.createdAt?.toDate?.()?.getTime?.() || 0;
+        const bDate = b.createdAt?.toDate?.()?.getTime?.() || 0;
+        return bDate - aDate;
+      });
+      setConsultations(entries);
+    });
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin || adminOpen) {
+      setToastConsultationId(null);
+      return;
+    }
+    setToastConsultationId(unreadConsultations[0]?.id || null);
+  }, [adminOpen, isAdmin, unreadConsultations.length]);
+
+  useEffect(() => {
+    const count = isAdmin ? unreadConsultations.length : 0;
+    if ("setAppBadge" in navigator && count) navigator.setAppBadge(count).catch(() => {});
+    if ("clearAppBadge" in navigator && !count) navigator.clearAppBadge().catch(() => {});
+
+    const favicon = document.querySelector('link[rel="icon"]');
+    if (!favicon) return;
+    if (!count) {
+      favicon.href = "/tice-mark.svg";
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = 192;
+    canvas.height = 192;
+    const context = canvas.getContext("2d");
+    const image = new Image();
+    image.onload = () => {
+      context.drawImage(image, 0, 0, 192, 192);
+      context.fillStyle = "#c894d5";
+      context.beginPath();
+      context.arc(151, 42, 35, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = "#173a5e";
+      context.font = "bold 39px DM Sans, sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(String(Math.min(count, 9)), 151, 44);
+      favicon.href = canvas.toDataURL("image/png");
+    };
+    image.src = "/icon-192.png";
+  }, [isAdmin, unreadConsultations.length]);
 
   useEffect(() => {
     const closeOnEscape = (event) => {
@@ -292,6 +367,22 @@ function App() {
     window.requestAnimationFrame(() => searchRef.current?.focus());
   };
 
+  const updateConsultationStatus = async (consultationId, status) => {
+    if (import.meta.env.DEV) {
+      setConsultations((current) => current.map((consultation) => consultation.id === consultationId ? { ...consultation, status } : consultation));
+      return;
+    }
+    const timestamps = status === "resolved" ? { resolvedAt: serverTimestamp() } : { readAt: serverTimestamp() };
+    await updateDoc(doc(db, "consultations", consultationId), { status, ...timestamps });
+  };
+
+  const openConsultationInbox = () => {
+    setAdminSection("consultations");
+    setAdminOpen(true);
+    setAccountOpen(false);
+    setToastConsultationId(null);
+  };
+
   if (!authReady) return <div className="loading-screen">Preparant el Racó…</div>;
   if (!user) return <AccessGate onSignIn={handleSignIn} error={authError} busy={authBusy} />;
 
@@ -303,19 +394,19 @@ function App() {
         <Brand />
         <nav aria-label="Navegació principal">
           <a className="active" href="#inici" onClick={() => setAdminOpen(false)}>Inici</a><a href="#guies" onClick={() => setAdminOpen(false)}>Guies</a><a href="#videotutorials" onClick={() => setAdminOpen(false)}>Videotutorials</a><a href="#recursos" onClick={() => setAdminOpen(false)}>Recursos</a><a href="#avui-al-raco" onClick={() => setAdminOpen(false)}>Novetats</a>
-          <button type="button" onClick={() => setConsultationContext("Consulta general")}>Consulta</button>
+          <button className="consultation-nav-button" type="button" onClick={() => isAdmin ? openConsultationInbox() : setConsultationContext("Consulta general")}>Consulta{isAdmin && unreadConsultations.length > 0 && <span className="notification-badge">{unreadConsultations.length}</span>}</button>
         </nav>
         <div className="account-wrap">
           <button className="account-button" type="button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen}>
             <span className="avatar">{initials}</span><span><strong>{user.displayName?.split(" ")[0] || "Educand"}</strong><small>Compte Educand</small></span>
           </button>
           {accountOpen && (
-            <div className="account-menu"><span>{user.email}</span>{user.email?.toLowerCase() === ADMIN_EMAIL && <><strong>Administrador</strong><button type="button" onClick={() => { setAdminOpen(true); setAccountOpen(false); }}>Espai de gestió <ArrowRight /></button></>}{!import.meta.env.DEV && <button type="button" onClick={() => signOut(auth)}><SignOut /> Tancar sessió</button>}</div>
+            <div className="account-menu"><span>{user.email}</span>{isAdmin && <><strong>Administrador</strong><button type="button" onClick={() => { setAdminSection("publications"); setAdminOpen(true); setAccountOpen(false); }}>Espai de gestió {unreadConsultations.length > 0 && <span className="menu-count">{unreadConsultations.length}</span>}<ArrowRight /></button></>}{!import.meta.env.DEV && <button type="button" onClick={() => signOut(auth)}><SignOut /> Tancar sessió</button>}</div>
           )}
         </div>
       </header>
 
-      {adminOpen ? <AdminWorkspace user={user} onClose={() => setAdminOpen(false)} onPublicationSaved={(publication) => {
+      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} consultations={consultations} onUpdateConsultation={updateConsultationStatus} onClose={() => setAdminOpen(false)} onPublicationSaved={(publication) => {
         if (import.meta.env.DEV && publication.status === "published") {
           setPublishedResources((current) => [{ ...publication, type: publication.typeLabel, date: "Ara", keywords: publication.keywords.join(" "), sortDate: Date.now() }, ...current.filter((entry) => entry.id !== publication.id)]);
         }
@@ -376,6 +467,7 @@ function App() {
       <footer><div><strong>Racó TIC-TAC · EASEO</strong><span>Escola Andorrana de Segona Ensenyança d’Ordino</span></div><div className="footer-links"><a href="#inici">Sobre el Racó</a><button type="button" onClick={() => setConsultationContext("Consulta general")}>Contacte</button><a href="#inici">Avís legal</a></div></footer>
       <ResourceDialog resource={selectedResource} onClose={() => setSelectedResource(null)} />
       {consultationContext && <ConsultationDialog user={user} context={consultationContext} onClose={() => setConsultationContext(null)} />}
+      <ConsultationToast consultation={toastConsultation} onAccept={() => updateConsultationStatus(toastConsultation.id, "read")} onOpen={() => { updateConsultationStatus(toastConsultation.id, "read"); openConsultationInbox(); }} />
     </div>
   );
 }
