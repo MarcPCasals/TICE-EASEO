@@ -3,6 +3,7 @@ import {
   Article,
   ArrowLeft,
   ArrowRight,
+  CalendarCheck,
   CheckCircle,
   ChatCircleDots,
   FileText,
@@ -19,6 +20,7 @@ import {
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "./lib/firebase";
 import ConsultationInbox from "./ConsultationInbox";
+import ReminderBoard from "./ReminderBoard";
 
 const publicationTypes = [
   { id: "video", label: "Vídeo", publicLabel: "Videotutorial", icon: VideoCamera },
@@ -71,7 +73,7 @@ function urlLabel(type) {
   return null;
 }
 
-export default function AdminWorkspace({ user, onClose, onPublicationSaved, section, onSectionChange, consultations, onUpdateConsultation }) {
+export default function AdminWorkspace({ user, onClose, onPublicationSaved, section, onSectionChange, consultations, onUpdateConsultation, reminders, onCreateReminder, onToggleReminder }) {
   const [form, setForm] = useState(initialForm);
   const [publicationId, setPublicationId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -151,15 +153,16 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, sect
 
   return (
     <main className="admin-workspace">
-      <div className="admin-breadcrumbs"><button type="button" onClick={onClose}>Espai de gestió</button><span>›</span><strong>{section === "consultations" ? "Consultes" : "Nova publicació"}</strong></div>
+      <div className="admin-breadcrumbs"><button type="button" onClick={onClose}>Espai de gestió</button><span>›</span><strong>{section === "consultations" ? "Consultes" : section === "reminders" ? "Recordatoris" : "Nova publicació"}</strong></div>
       <button className="back-to-site" type="button" onClick={onClose}><ArrowLeft /> Tornar al web</button>
 
       <div className="admin-section-tabs" role="tablist" aria-label="Apartats de gestió">
         <button className={section === "publications" ? "selected" : ""} type="button" role="tab" aria-selected={section === "publications"} onClick={() => onSectionChange("publications")}><FileText /> Publicacions</button>
         <button className={section === "consultations" ? "selected" : ""} type="button" role="tab" aria-selected={section === "consultations"} onClick={() => onSectionChange("consultations")}><ChatCircleDots /> Consultes {consultations.some((item) => item.status === "new") && <span>{consultations.filter((item) => item.status === "new").length}</span>}</button>
+        <button className={section === "reminders" ? "selected" : ""} type="button" role="tab" aria-selected={section === "reminders"} onClick={() => onSectionChange("reminders")}><CalendarCheck /> Recordatoris {reminders.some((item) => !item.completed) && <span>{reminders.filter((item) => !item.completed).length}</span>}</button>
       </div>
 
-      {section === "consultations" ? <ConsultationInbox consultations={consultations} onUpdateStatus={onUpdateConsultation} /> : <section className="publication-studio">
+      {section === "consultations" ? <ConsultationInbox consultations={consultations} onUpdateStatus={onUpdateConsultation} /> : section === "reminders" ? <ReminderBoard reminders={reminders} onCreate={onCreateReminder} onToggle={onToggleReminder} /> : <section className="publication-studio">
         <div className="publication-editor">
           <span className="content-type">Espai de gestió</span>
           <h1>Contingut</h1>

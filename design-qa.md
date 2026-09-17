@@ -37,3 +37,44 @@
 - P3: the generated concept uses longer example copy than the real rubric resource, so the real preview is intentionally less dense.
 
 final result: passed
+
+---
+
+# Design QA · gestor de recordatoris
+
+- Source visual truth: `/var/folders/74/q1q7tp35509f8hnk93wlr6pw0000gn/T/TemporaryItems/NSIRD_screencaptureui_cEgtqa/Captura de pantalla 2026-09-17 a les 19.58.56.png`
+- Implementation screenshot: `/Users/marc/Documents/projectes/TICE-EASEO/work/reminder-board-desktop-final.png`
+- Mobile screenshot: `/Users/marc/Documents/projectes/TICE-EASEO/work/reminder-board-mobile-final.png`
+- Viewports: desktop `1370 × 852`; mobile `390 × 844`
+- Source pixels: `1370 × 852`; implementation pixels: `1370 × 852`; CSS viewport `1370 × 852`; browser density `2×` with browser-normalized screenshot output.
+- State: authenticated administrator, private reminder tab selected, two realistic pending reminders visible.
+- Full-view comparison: `/Users/marc/Documents/projectes/TICE-EASEO/work/reminder-board-qa-side-by-side.jpg`
+- Comparison scope: the approved homepage is the source of truth for the shared visual system rather than an exact layout mock for this new private screen.
+- Focused comparison: not required; typography, palette, rules, texture and controls remain clearly readable in the full-width paired image.
+
+## Findings
+
+- P0: none.
+- P1: none.
+- P2: none unresolved.
+- Fonts and typography: Newsreader and Libre Caslon Display preserve the editorial headline hierarchy; DM Sans keeps form labels and metadata compact and legible.
+- Spacing and layout rhythm: the creation form and review list form two clear columns on desktop and a single uninterrupted flow on mobile.
+- Colors and tokens: navy, orange, violet, cream paper and thin/double rules map directly to the approved Racó palette.
+- Image and asset fidelity: the supplied brand logo and existing real newsprint texture are reused; all interface icons come from the installed Phosphor library.
+- Copy and content: labels are concise Catalan and the examples reflect the first real TICE resources.
+- Responsive behavior: verified at `390 px`; document width equals viewport width (`390 px`) with no page-level horizontal overflow.
+- Accessibility: every field has a label, filters expose text labels, completion buttons have action-specific accessible names, and focus states remain present.
+- Interactions tested: opened the private workspace, selected Recordatoris, created a reminder, changed priority, marked it complete, and found it under Fets.
+- Console: a fresh browser tab completed the tested flow with no errors.
+
+## Comparison history
+
+1. First visual pass: no actionable P0/P1/P2 mismatch in the shared design surfaces.
+2. Functional polish: the list heading was made responsive to the selected filter (`Per fer`, `Fets` or `Tots`).
+3. Mobile pass: layout stacks correctly and has no horizontal overflow.
+
+## Follow-up polish
+
+- P3: if the reminder list grows substantially, a text search can be added later without changing this composition.
+
+final result: passed

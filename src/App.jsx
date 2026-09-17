@@ -30,6 +30,11 @@ const previewConsultations = [
   { id: "consulta-demo-2", name: "Jordi P.", email: "jordi.p@educand.ad", topic: "Gemini o ChatGPT", message: "Per preparar activitats amb documents del Drive, quina eina em recomanes fer servir i per què?", status: "read", createdAt: new Date("2026-09-17T12:18:00+02:00") },
   { id: "consulta-demo-3", name: "Marta R.", email: "marta.r@educand.ad", topic: "Compartir una plantilla", message: "Ja he pogut duplicar la plantilla i adaptar-la al meu grup. Moltes gràcies!", status: "resolved", createdAt: new Date("2026-09-16T16:05:00+02:00") },
 ];
+const previewReminders = [
+  { id: "recordatori-demo-1", title: "Gravar el videotutorial de l’autenticació de dos passos", notes: "Preparar primer un compte de prova i comprovar que no es mostri cap dada personal.", dueDate: "2026-09-18", priority: "high", completed: false, createdAt: new Date("2026-09-17T18:10:00+02:00") },
+  { id: "recordatori-demo-2", title: "Revisar el prompt de rúbriques", notes: "Afegir un exemple breu per a cada nivell d’assoliment.", dueDate: "2026-09-17", priority: "medium", completed: false, createdAt: new Date("2026-09-17T11:30:00+02:00") },
+  { id: "recordatori-demo-3", title: "Definir l’estructura de l’article comparatiu d’IA", notes: "Gemini, ChatGPT i Claude.", dueDate: "2026-09-16", priority: "low", completed: true, createdAt: new Date("2026-09-16T15:00:00+02:00") },
+];
 
 const resources = [
   {
@@ -218,6 +223,7 @@ function App() {
   const [adminSection, setAdminSection] = useState("publications");
   const [publishedResources, setPublishedResources] = useState([]);
   const [consultations, setConsultations] = useState(import.meta.env.DEV ? previewConsultations : []);
+  const [reminders, setReminders] = useState(import.meta.env.DEV ? previewReminders : []);
   const [toastConsultationId, setToastConsultationId] = useState(null);
   const searchRef = useRef(null);
   const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL;
@@ -272,6 +278,14 @@ function App() {
         return bDate - aDate;
       });
       setConsultations(entries);
+    });
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin || import.meta.env.DEV) return undefined;
+    return onSnapshot(collection(db, "reminders"), (snapshot) => {
+      const entries = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+      setReminders(entries);
     });
   }, [isAdmin]);
 
@@ -383,6 +397,32 @@ function App() {
     setToastConsultationId(null);
   };
 
+  const createReminder = async (reminder) => {
+    if (import.meta.env.DEV) {
+      setReminders((current) => [{ id: `recordatori-${Date.now()}`, ...reminder, completed: false, createdAt: new Date() }, ...current]);
+      return;
+    }
+    await addDoc(collection(db, "reminders"), {
+      ...reminder,
+      completed: false,
+      ownerEmail: user.email,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  };
+
+  const toggleReminder = async (reminder, completed) => {
+    if (import.meta.env.DEV) {
+      setReminders((current) => current.map((item) => item.id === reminder.id ? { ...item, completed } : item));
+      return;
+    }
+    await updateDoc(doc(db, "reminders", reminder.id), {
+      completed,
+      completedAt: completed ? serverTimestamp() : null,
+      updatedAt: serverTimestamp(),
+    });
+  };
+
   if (!authReady) return <div className="loading-screen">Preparant el Racó…</div>;
   if (!user) return <AccessGate onSignIn={handleSignIn} error={authError} busy={authBusy} />;
 
@@ -406,7 +446,7 @@ function App() {
         </div>
       </header>
 
-      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} consultations={consultations} onUpdateConsultation={updateConsultationStatus} onClose={() => setAdminOpen(false)} onPublicationSaved={(publication) => {
+      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} consultations={consultations} onUpdateConsultation={updateConsultationStatus} reminders={reminders} onCreateReminder={createReminder} onToggleReminder={toggleReminder} onClose={() => setAdminOpen(false)} onPublicationSaved={(publication) => {
         if (import.meta.env.DEV && publication.status === "published") {
           setPublishedResources((current) => [{ ...publication, type: publication.typeLabel, date: "Ara", keywords: publication.keywords.join(" "), sortDate: Date.now() }, ...current.filter((entry) => entry.id !== publication.id)]);
         }

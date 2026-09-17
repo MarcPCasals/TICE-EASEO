@@ -85,6 +85,47 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /reminders/{reminderId} {
+      allow read: if isAdmin();
+
+      allow create: if isAdmin()
+        && request.resource.data.ownerEmail == request.auth.token.email
+        && request.resource.data.keys().hasOnly([
+          'title',
+          'notes',
+          'dueDate',
+          'priority',
+          'completed',
+          'ownerEmail',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.title is string
+        && request.resource.data.notes is string
+        && request.resource.data.dueDate is string
+        && request.resource.data.priority in ['high', 'medium', 'low']
+        && request.resource.data.completed == false;
+
+      allow update: if isAdmin()
+        && request.resource.data.ownerEmail == request.auth.token.email
+        && request.resource.data.priority in ['high', 'medium', 'low']
+        && request.resource.data.title is string
+        && request.resource.data.notes is string
+        && request.resource.data.dueDate is string
+        && request.resource.data.completed is bool
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title',
+          'notes',
+          'dueDate',
+          'priority',
+          'completed',
+          'completedAt',
+          'updatedAt'
+        ]);
+
+      allow delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
