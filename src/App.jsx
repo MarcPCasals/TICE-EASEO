@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowBendDownLeft,
   ArrowRight,
   BookOpen,
   Brain,
@@ -295,7 +296,7 @@ function App() {
               </div>
             )}
           </form>
-          <p className="search-note">Troba guies, exemples i solucions en segons.</p>
+          <p className="search-note"><span>Troba guies, exemples i solucions en segons.</span><ArrowBendDownLeft weight="bold" aria-hidden="true" /></p>
         </section>
 
         <section className="topics-strip" id="guies" aria-label="Temes principals">
