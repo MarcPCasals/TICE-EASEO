@@ -18,7 +18,7 @@
 - P1: none.
 - P2 resolved: the navy hero frame now measures `1035 × 390` at the source viewport and sits at the same horizontal and vertical coordinates as the reference.
 - P2 resolved: hero typography switches to white while preserving the orange signature phrase and white search surface.
-- P2 resolved: the violet note now includes a curved arrow from the existing icon library and remains inside the viewport.
+- P2 resolved: the violet note uses a handwritten editorial face; its curved arrow grows directly from the text, uses the existing icon library and remains inside the viewport.
 - Responsive check: no horizontal page overflow at either viewport; the violet annotation hides on narrow screens and the topic rail remains horizontally scrollable by design.
 - Responsive check: mobile headline and search placeholder were tightened for readable wrapping inside the framed surface.
 - Interaction check: existing search, topic, resource and consultation behavior remains unchanged.
