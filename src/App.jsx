@@ -15,13 +15,16 @@ import {
   MonitorPlay,
   SignOut,
   Sparkle,
+  Star,
   Wrench,
   X,
 } from "@phosphor-icons/react";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import { addDoc, collection, doc, onSnapshot, query as firestoreQuery, serverTimestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, onSnapshot, query as firestoreQuery, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { auth, db, googleProvider } from "./lib/firebase";
 import AdminWorkspace from "./AdminWorkspace";
+import ResourceCollectionPage from "./ResourceCollectionPage";
+import { promptRubriquesContent } from "./content/promptRubriques";
 
 const ADMIN_EMAIL = "mperezc@educand.ad";
 const previewUser = { displayName: "Marc Pérez", email: ADMIN_EMAIL, photoURL: "" };
@@ -39,33 +42,49 @@ const previewReminders = [
 const resources = [
   {
     id: "doble-autenticacio",
+    source: "seed",
     type: "Videotutorial",
+    resourceType: "video",
     category: "Google i Chrome",
     title: "Com activar l’autenticació de dos passos al compte Educand?",
     summary: "Augmenta la seguretat del teu compte en pocs minuts. Una guia clara, pas a pas, per activar la verificació en dos passos.",
     status: "Vídeo en preparació",
     image: "/two-step-verification.png",
     keywords: "google educand autenticació verificació dos passos seguretat compte vídeo tutorial",
+    content: "En aquest videotutorial veuràs com activar l’autenticació de dos passos i revisar els mètodes de verificació del compte.",
+    externalUrl: "https://drive.google.com/file/d/1FxOvd7OpkqWRVZx3w3SCpae2mqy6XH7L/view?usp=drive_link",
+    featured: true,
+    publicationStatus: "published",
   },
   {
     id: "prompt-rubriques",
+    source: "seed",
     type: "Recurs destacat",
+    resourceType: "prompt",
     category: "Biblioteca de prompts",
     title: "Prompt per fer les rúbriques d’avaluació",
     summary: "Un model de prompt per adaptar i generar rúbriques clares, coherents i alineades amb les competències.",
     status: "Prompt en preparació",
     date: "15 set. 2026",
     keywords: "prompt rúbriques avaluació competències chatgpt gemini claude",
+    content: promptRubriquesContent,
+    externalUrl: "/prompt-rubriques-ae.docx",
+    featured: true,
+    publicationStatus: "published",
   },
   {
     id: "comparativa-ia",
+    source: "seed",
     type: "Article",
+    resourceType: "article",
     category: "IA bàsica",
     title: "Gemini, ChatGPT o Claude: quina IA convé en cada situació?",
     summary: "Una comparativa clara i pràctica per triar l’eina adequada segons l’objectiu, el tipus de tasca i el context educatiu.",
     status: "Article en preparació",
     date: "12 set. 2026",
     keywords: "gemini chatgpt claude comparativa intel·ligència artificial eina quan",
+    featured: false,
+    publicationStatus: "published",
   },
 ];
 
@@ -87,6 +106,11 @@ function Brand() {
   );
 }
 
+function drivePreviewUrl(url) {
+  const fileId = url?.match(/drive[.]google[.]com\/file\/d\/([^/]+)/)?.[1];
+  return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : null;
+}
+
 function AccessGate({ onSignIn, error, busy }) {
   return (
     <main className="access-gate">
@@ -105,31 +129,44 @@ function AccessGate({ onSignIn, error, busy }) {
   );
 }
 
+function FormattedResourceContent({ content }) {
+  return (
+    <div className="resource-content">
+      {content.split("\n").map((line, index) => {
+        if (!line) return <span className="resource-content-space" key={index} aria-hidden="true" />;
+        if (line.startsWith("## ")) return <h3 key={index}>{line.slice(3).replace(/^# /, "")}</h3>;
+        return <p key={index}>{line}</p>;
+      })}
+    </div>
+  );
+}
+
 function ResourceDialog({ resource, onClose }) {
   const [copied, setCopied] = useState(false);
   if (!resource) return null;
 
-  const copyTitle = async () => {
-    await navigator.clipboard?.writeText(resource.title);
+  const copyContent = async () => {
+    await navigator.clipboard?.writeText(resource.content || resource.title);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
+  const videoUrl = resource.resourceType === "video" ? drivePreviewUrl(resource.externalUrl) : null;
 
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section className="resource-dialog" role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="icon-button close-button" type="button" onClick={onClose} aria-label="Tancar"><X /></button>
-        {resource.image && <img className="dialog-image" src={resource.image} alt="Imatge del recurs" />}
+        {videoUrl ? <div className="dialog-video"><iframe src={videoUrl} title={resource.title} allow="autoplay; fullscreen" allowFullScreen /></div> : resource.image && <img className="dialog-image" src={resource.image} alt="Imatge del recurs" />}
         <div className="dialog-copy">
           <span className="content-type">{resource.type}</span>
           <h2 id="resource-title">{resource.title}</h2>
           <p>{resource.summary}</p>
-          {resource.content ? <div className="resource-content">{resource.content}</div> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
-          {resource.externalUrl && <a className="primary-button resource-link" href={resource.externalUrl} target="_blank" rel="noreferrer">Obrir el recurs <ArrowRight weight="bold" /></a>}
-          {resource.id === "prompt-rubriques" && (
-            <button className="secondary-button" type="button" onClick={copyTitle}>
+          {resource.content ? <FormattedResourceContent content={resource.content} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
+          {resource.externalUrl && !videoUrl && <a className="primary-button resource-link" href={resource.externalUrl} target="_blank" rel="noreferrer">{resource.externalUrl.endsWith(".docx") ? "Descarregar el document" : "Obrir el recurs"} <ArrowRight weight="bold" /></a>}
+          {resource.resourceType === "prompt" && resource.content && (
+            <button className="secondary-button" type="button" onClick={copyContent}>
               {copied ? <CheckCircle weight="fill" /> : <Copy />}
-              {copied ? "Copiat" : "Copiar el títol del prompt"}
+              {copied ? "Prompt copiat" : "Copiar el prompt"}
             </button>
           )}
         </div>
@@ -221,6 +258,8 @@ function App() {
   const [consultationContext, setConsultationContext] = useState(null);
   const [adminOpen, setAdminOpen] = useState(false);
   const [adminSection, setAdminSection] = useState("publications");
+  const [publicView, setPublicView] = useState("home");
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [publishedResources, setPublishedResources] = useState([]);
   const [consultations, setConsultations] = useState(import.meta.env.DEV ? previewConsultations : []);
   const [reminders, setReminders] = useState(import.meta.env.DEV ? previewReminders : []);
@@ -249,6 +288,7 @@ function App() {
           const dateValue = data.publishedAt?.toDate?.() || data.updatedAt?.toDate?.();
           return {
             id: entry.id,
+            source: "firestore",
             type: data.typeLabel || "Recurs",
             resourceType: data.type,
             category: data.category || "Recursos",
@@ -256,6 +296,7 @@ function App() {
             summary: data.summary,
             content: data.content,
             externalUrl: data.externalUrl,
+            featured: Boolean(data.featured),
             status: data.status === "published" ? "Publicat" : "Esborrany",
             date: dateValue ? new Intl.DateTimeFormat("ca-AD", { day: "numeric", month: "short", year: "numeric" }).format(dateValue) : "Ara",
             keywords: Array.isArray(data.keywords) ? data.keywords.join(" ") : data.keywords || "",
@@ -263,7 +304,6 @@ function App() {
             publicationStatus: data.status,
           };
         })
-        .filter((entry) => isAdmin ? entry.publicationStatus === "published" : true)
         .sort((a, b) => b.sortDate - a.sortDate);
       setPublishedResources(entries);
     });
@@ -342,10 +382,18 @@ function App() {
   }, []);
 
   const displayResources = useMemo(() => {
-    const publishedTitles = new Set(publishedResources.map((resource) => resource.title.trim().toLocaleLowerCase("ca")));
-    const pendingSeeds = resources.slice(1).filter((resource) => !publishedTitles.has(resource.title.trim().toLocaleLowerCase("ca")));
-    return [resources[0], ...publishedResources, ...pendingSeeds];
+    const visibleFirestore = publishedResources.filter((resource) => resource.publicationStatus === "published");
+    const publishedTitles = new Set(visibleFirestore.map((resource) => resource.title.trim().toLocaleLowerCase("ca")));
+    const pendingSeeds = resources.filter((resource) => !publishedTitles.has(resource.title.trim().toLocaleLowerCase("ca")));
+    return [...visibleFirestore, ...pendingSeeds];
   }, [publishedResources]);
+
+  const publicationLibrary = useMemo(() => {
+    const savedTitles = new Set(publishedResources.map((resource) => resource.title.trim().toLocaleLowerCase("ca")));
+    return [...publishedResources, ...resources.filter((resource) => !savedTitles.has(resource.title.trim().toLocaleLowerCase("ca")))];
+  }, [publishedResources]);
+
+  const featuredResources = useMemo(() => displayResources.filter((resource) => resource.featured), [displayResources]);
 
   const matches = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("ca");
@@ -375,10 +423,11 @@ function App() {
     setSearchOpen(true);
   };
 
-  const chooseTopic = (topic) => {
-    setQuery(topic.query);
-    setSearchOpen(true);
-    window.requestAnimationFrame(() => searchRef.current?.focus());
+  const openCategory = (category) => {
+    setSelectedCategory(category);
+    setPublicView("category");
+    setAdminOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const updateConsultationStatus = async (consultationId, status) => {
@@ -397,18 +446,33 @@ function App() {
     setToastConsultationId(null);
   };
 
-  const createReminder = async (reminder) => {
+  const saveReminder = async (reminder) => {
+    const { id, ...values } = reminder;
     if (import.meta.env.DEV) {
-      setReminders((current) => [{ id: `recordatori-${Date.now()}`, ...reminder, completed: false, createdAt: new Date() }, ...current]);
+      setReminders((current) => id
+        ? current.map((item) => item.id === id ? { ...item, ...values } : item)
+        : [{ id: `recordatori-${Date.now()}`, ...values, completed: false, createdAt: new Date() }, ...current]);
+      return;
+    }
+    if (id) {
+      await updateDoc(doc(db, "reminders", id), { ...values, updatedAt: serverTimestamp() });
       return;
     }
     await addDoc(collection(db, "reminders"), {
-      ...reminder,
+      ...values,
       completed: false,
       ownerEmail: user.email,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+  };
+
+  const deleteReminder = async (reminderId) => {
+    if (import.meta.env.DEV) {
+      setReminders((current) => current.filter((item) => item.id !== reminderId));
+      return;
+    }
+    await deleteDoc(doc(db, "reminders", reminderId));
   };
 
   const toggleReminder = async (reminder, completed) => {
@@ -433,7 +497,7 @@ function App() {
       <header className="site-header">
         <Brand />
         <nav aria-label="Navegació principal">
-          <a className="active" href="#inici" onClick={() => setAdminOpen(false)}>Inici</a><a href="#guies" onClick={() => setAdminOpen(false)}>Guies</a><a href="#videotutorials" onClick={() => setAdminOpen(false)}>Videotutorials</a><a href="#recursos" onClick={() => setAdminOpen(false)}>Recursos</a><a href="#avui-al-raco" onClick={() => setAdminOpen(false)}>Novetats</a>
+          <a className={!adminOpen && publicView === "home" ? "active" : ""} href="#inici" onClick={() => { setAdminOpen(false); setPublicView("home"); }}>Inici</a><a href="#guies" onClick={() => { setAdminOpen(false); setPublicView("home"); }}>Guies</a><a href="#videotutorials" onClick={() => { setAdminOpen(false); setPublicView("home"); }}>Videotutorials</a><a href="#recursos" onClick={() => { setAdminOpen(false); setPublicView("home"); }}>Recursos</a><button className={!adminOpen && publicView === "featured" ? "active" : ""} type="button" onClick={() => { setAdminOpen(false); setPublicView("featured"); window.scrollTo({ top: 0, behavior: "smooth" }); }}><Star weight="fill" /> Destacats</button><a href="#avui-al-raco" onClick={() => { setAdminOpen(false); setPublicView("home"); }}>Novetats</a>
           <button className="consultation-nav-button" type="button" onClick={() => isAdmin ? openConsultationInbox() : setConsultationContext("Consulta general")}>Consulta{isAdmin && unreadConsultations.length > 0 && <span className="notification-badge">{unreadConsultations.length}</span>}</button>
         </nav>
         <div className="account-wrap">
@@ -446,11 +510,13 @@ function App() {
         </div>
       </header>
 
-      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} consultations={consultations} onUpdateConsultation={updateConsultationStatus} reminders={reminders} onCreateReminder={createReminder} onToggleReminder={toggleReminder} onClose={() => setAdminOpen(false)} onPublicationSaved={(publication) => {
-        if (import.meta.env.DEV && publication.status === "published") {
-          setPublishedResources((current) => [{ ...publication, type: publication.typeLabel, date: "Ara", keywords: publication.keywords.join(" "), sortDate: Date.now() }, ...current.filter((entry) => entry.id !== publication.id)]);
+      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} publications={publicationLibrary} consultations={consultations} onUpdateConsultation={updateConsultationStatus} reminders={reminders} onSaveReminder={saveReminder} onToggleReminder={toggleReminder} onDeleteReminder={deleteReminder} onClose={() => setAdminOpen(false)} onPublicationDeleted={(publicationId) => {
+        if (import.meta.env.DEV) setPublishedResources((current) => current.filter((entry) => entry.id !== publicationId));
+      }} onPublicationSaved={(publication) => {
+        if (import.meta.env.DEV) {
+          setPublishedResources((current) => [{ ...publication, source: "firestore", type: publication.typeLabel, resourceType: publication.type, date: "Ara", keywords: publication.keywords.join(" "), sortDate: Date.now(), publicationStatus: publication.status }, ...current.filter((entry) => entry.id !== publication.id)]);
         }
-      }} /> : <main>
+      }} /> : publicView === "featured" ? <ResourceCollectionPage title="Destacats" eyebrow="Selecció del Racó" intro="Els recursos més útils per començar, ordenats per format perquè trobis ràpidament allò que necessites." resources={featuredResources} groupByType onBack={() => setPublicView("home")} onOpen={setSelectedResource} /> : publicView === "category" ? <ResourceCollectionPage title={selectedCategory} eyebrow="Biblioteca per temàtiques" intro={`Guies, vídeos i recursos de ${selectedCategory} reunits en un mateix lloc.`} resources={displayResources.filter((resource) => resource.category === selectedCategory)} onBack={() => setPublicView("home")} onOpen={setSelectedResource} /> : <main>
         <section className="hero-section" aria-labelledby="hero-title">
           <span className="eyebrow">Tecnologia per a l’aprenentatge a l’EASEO</span>
           <h1 id="hero-title">Tens un dubte digital?<br />Aquí tens <em>la resposta.</em></h1>
@@ -474,7 +540,7 @@ function App() {
 
         <section className="topics-strip" id="guies" aria-label="Temes principals">
           {topics.map(({ title, subtitle, icon: TopicIcon, query: topicQuery }) => (
-            <button type="button" key={title} onClick={() => chooseTopic({ query: topicQuery })}><TopicIcon weight="regular" /><span><strong>{title}</strong><small>{subtitle}</small></span></button>
+            <button type="button" key={title} onClick={() => openCategory(title)}><TopicIcon weight="regular" /><span><strong>{title}</strong><small>{subtitle}</small></span></button>
           ))}
         </section>
 

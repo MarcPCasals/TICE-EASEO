@@ -48,6 +48,7 @@ service cloud.firestore {
           'keywords',
           'content',
           'externalUrl',
+          'featured',
           'status',
           'authorName',
           'authorEmail',
@@ -61,11 +62,13 @@ service cloud.firestore {
         && request.resource.data.category is string
         && request.resource.data.keywords is list
         && request.resource.data.content is string
-        && request.resource.data.externalUrl is string;
+        && request.resource.data.externalUrl is string
+        && request.resource.data.featured is bool;
 
       allow update: if isAdmin()
         && request.resource.data.authorEmail == request.auth.token.email
         && request.resource.data.status in ['draft', 'published']
+        && request.resource.data.featured is bool
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'type',
           'typeLabel',
@@ -75,6 +78,7 @@ service cloud.firestore {
           'keywords',
           'content',
           'externalUrl',
+          'featured',
           'status',
           'authorName',
           'authorEmail',

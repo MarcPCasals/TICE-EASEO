@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarCheck, Check, ClockCountdown, Flag, Plus, SealCheck } from "@phosphor-icons/react";
+import { CalendarCheck, Check, ClockCountdown, Flag, FloppyDisk, PencilSimple, Plus, SealCheck, Trash, X } from "@phosphor-icons/react";
 
 function todayValue() {
   return new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -21,7 +21,7 @@ function dateState(value) {
 const priorityOrder = { high: 0, medium: 1, low: 2 };
 const priorityLabels = { high: "Alta", medium: "Mitjana", low: "Baixa" };
 
-export default function ReminderBoard({ reminders, onCreate, onToggle }) {
+export default function ReminderBoard({ reminders, onSave, onToggle, onDelete }) {
   const [filter, setFilter] = useState("pending");
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
@@ -29,6 +29,7 @@ export default function ReminderBoard({ reminders, onCreate, onToggle }) {
   const [priority, setPriority] = useState("medium");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   const visibleReminders = useMemo(() => reminders
     .filter((reminder) => filter === "all" || (filter === "done" ? reminder.completed : !reminder.completed))
@@ -38,7 +39,25 @@ export default function ReminderBoard({ reminders, onCreate, onToggle }) {
       return priorityOrder[a.priority] - priorityOrder[b.priority];
     }), [filter, reminders]);
 
-  const addReminder = async (event) => {
+  const resetForm = () => {
+    setTitle("");
+    setNotes("");
+    setDueDate(todayValue());
+    setPriority("medium");
+    setEditingId(null);
+    setError("");
+  };
+
+  const editReminder = (reminder) => {
+    setTitle(reminder.title || "");
+    setNotes(reminder.notes || "");
+    setDueDate(reminder.dueDate || todayValue());
+    setPriority(reminder.priority || "medium");
+    setEditingId(reminder.id);
+    setError("");
+  };
+
+  const saveReminder = async (event) => {
     event.preventDefault();
     if (!title.trim()) {
       setError("Escriu què vols recordar.");
@@ -47,10 +66,8 @@ export default function ReminderBoard({ reminders, onCreate, onToggle }) {
     setSaving(true);
     setError("");
     try {
-      await onCreate({ title: title.trim(), notes: notes.trim(), dueDate, priority });
-      setTitle("");
-      setNotes("");
-      setPriority("medium");
+      await onSave({ id: editingId, title: title.trim(), notes: notes.trim(), dueDate, priority });
+      resetForm();
     } catch {
       setError("No s’ha pogut desar el recordatori.");
     } finally {
@@ -67,8 +84,8 @@ export default function ReminderBoard({ reminders, onCreate, onToggle }) {
       </header>
 
       <div className="reminder-layout">
-        <form className="reminder-form" onSubmit={addReminder}>
-          <div className="reminder-form-heading"><CalendarCheck weight="duotone" /><div><strong>Nou recordatori</strong><span>Només és visible per a tu.</span></div></div>
+        <form className="reminder-form" onSubmit={saveReminder}>
+          <div className="reminder-form-heading"><CalendarCheck weight="duotone" /><div><strong>{editingId ? "Edita el recordatori" : "Nou recordatori"}</strong><span>Només és visible per a tu.</span></div>{editingId && <button className="reminder-cancel" type="button" onClick={resetForm} aria-label="Cancel·lar l’edició"><X /></button>}</div>
           <label>Què has de fer? <span>*</span><input value={title} onChange={(event) => setTitle(event.target.value)} maxLength="140" placeholder="Per exemple: gravar el videotutorial…" /></label>
           <div className="reminder-form-row">
             <label>Data<input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label>
@@ -76,7 +93,7 @@ export default function ReminderBoard({ reminders, onCreate, onToggle }) {
           </div>
           <label>Notes opcionals<textarea rows="4" value={notes} onChange={(event) => setNotes(event.target.value)} maxLength="500" placeholder="Detalls, enllaços o passos que no vols oblidar…" /></label>
           {error && <p className="admin-error" role="alert">{error}</p>}
-          <button className="primary-button" type="submit" disabled={saving}><Plus weight="bold" />{saving ? "Desant…" : "Afegir recordatori"}</button>
+          <button className="primary-button" type="submit" disabled={saving}>{editingId ? <FloppyDisk weight="bold" /> : <Plus weight="bold" />}{saving ? "Desant…" : editingId ? "Desar els canvis" : "Afegir recordatori"}</button>
         </form>
 
         <div className="reminder-list-panel">
@@ -91,6 +108,7 @@ export default function ReminderBoard({ reminders, onCreate, onToggle }) {
                 <article className={`reminder-item ${reminder.completed ? "completed" : ""}`} key={reminder.id}>
                   <button className="reminder-check" type="button" onClick={() => onToggle(reminder, !reminder.completed)} aria-label={reminder.completed ? "Tornar a marcar com a pendent" : "Marcar com a fet"}>{reminder.completed ? <Check weight="bold" /> : null}</button>
                   <div className="reminder-copy"><h3>{reminder.title}</h3>{reminder.notes && <p>{reminder.notes}</p>}<div className="reminder-meta"><span className={`reminder-date ${due.className}`}><ClockCountdown />{due.label}</span><span className={`priority priority-${reminder.priority}`}><Flag weight="fill" />Prioritat {priorityLabels[reminder.priority]}</span></div></div>
+                  <div className="reminder-item-actions"><button type="button" onClick={() => editReminder(reminder)}><PencilSimple /> Editar</button><button type="button" onClick={() => { if (window.confirm(`Vols eliminar “${reminder.title}”?`)) onDelete(reminder.id); }}><Trash /> Eliminar</button></div>
                 </article>
               );
             }) : <div className="reminder-empty"><SealCheck weight="duotone" /><h3>{filter === "done" ? "Encara no n’has completat cap" : "Tot fet per ara"}</h3><p>Quan afegeixis un recordatori, apareixerà aquí.</p></div>}
