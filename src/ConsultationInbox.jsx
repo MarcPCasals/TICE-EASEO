@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowSquareOut, CheckCircle, ChatCircleDots, Copy, EnvelopeSimple, SealCheck } from "@phosphor-icons/react";
+import { ArrowSquareOut, CalendarPlus, CheckCircle, ChatCircleDots, Copy, EnvelopeSimple, SealCheck } from "@phosphor-icons/react";
 
 function consultationDate(value) {
   const date = value instanceof Date ? value : value?.toDate?.();
@@ -13,7 +13,7 @@ function statusLabel(status) {
   return "Pendent";
 }
 
-export default function ConsultationInbox({ consultations, onUpdateStatus }) {
+export default function ConsultationInbox({ consultations, onUpdateStatus, onConvertToReminder, reminders }) {
   const [filter, setFilter] = useState("open");
   const [selectedId, setSelectedId] = useState(consultations.find((item) => item.status !== "resolved")?.id || consultations[0]?.id || null);
   const [copied, setCopied] = useState(false);
@@ -25,6 +25,7 @@ export default function ConsultationInbox({ consultations, onUpdateStatus }) {
   }, [consultations, filter]);
 
   const selected = consultations.find((item) => item.id === selectedId) || visibleConsultations[0] || null;
+  const convertedToReminder = selected ? reminders.some((reminder) => reminder.sourceConsultationId === selected.id) : false;
 
   const openConsultation = (consultation) => {
     setSelectedId(consultation.id);
@@ -81,6 +82,7 @@ export default function ConsultationInbox({ consultations, onUpdateStatus }) {
               <div className="consultation-message"><ChatCircleDots weight="duotone" /><p>{selected.message}</p></div>
               <div className="consultation-actions">
                 <a className="primary-button" href={`mailto:${selected.email}?subject=${encodeURIComponent(`Re: ${selected.topic}`)}`}><EnvelopeSimple /> Respondre per correu <ArrowSquareOut /></a>
+                <button className="secondary-button" type="button" disabled={convertedToReminder} onClick={() => onConvertToReminder(selected)}><CalendarPlus />{convertedToReminder ? "Afegida als recordatoris" : "Convertir en recordatori"}</button>
                 <button className="secondary-button" type="button" onClick={() => onUpdateStatus(selected.id, selected.status === "resolved" ? "read" : "resolved")}>
                   <CheckCircle weight={selected.status === "resolved" ? "regular" : "fill"} />{selected.status === "resolved" ? "Reobrir la consulta" : "Marcar com a resolta"}
                 </button>

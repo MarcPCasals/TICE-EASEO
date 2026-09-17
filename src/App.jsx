@@ -16,18 +16,20 @@ import {
   SignOut,
   Sparkle,
   Star,
+  ThumbsDown,
+  ThumbsUp,
   Wrench,
   X,
 } from "@phosphor-icons/react";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import { addDoc, collection, deleteDoc, doc, onSnapshot, query as firestoreQuery, serverTimestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, onSnapshot, query as firestoreQuery, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import { auth, db, googleProvider } from "./lib/firebase";
 import AdminWorkspace from "./AdminWorkspace";
 import ResourceCollectionPage from "./ResourceCollectionPage";
 import { promptRubriquesContent } from "./content/promptRubriques";
 
 const ADMIN_EMAIL = "mperezc@educand.ad";
-const previewUser = { displayName: "Marc Pérez", email: ADMIN_EMAIL, photoURL: "" };
+const previewUser = { uid: "preview-marc", displayName: "Marc Pérez", email: ADMIN_EMAIL, photoURL: "" };
 const previewConsultations = [
   { id: "consulta-demo-1", name: "Laia M.", email: "laia.m@educand.ad", topic: "Autenticació de dos passos", message: "He activat la verificació de dos passos, però no sé com afegir el meu telèfon nou. Em podries indicar on es canvia?", status: "new", createdAt: new Date("2026-09-17T18:42:00+02:00") },
   { id: "consulta-demo-2", name: "Jordi P.", email: "jordi.p@educand.ad", topic: "Gemini o ChatGPT", message: "Per preparar activitats amb documents del Drive, quina eina em recomanes fer servir i per què?", status: "read", createdAt: new Date("2026-09-17T12:18:00+02:00") },
@@ -141,8 +143,13 @@ function FormattedResourceContent({ content }) {
   );
 }
 
-function ResourceDialog({ resource, onClose }) {
+function ResourceDialog({ resource, resources: allResources, onRate, onOpenResource, onClose }) {
   const [copied, setCopied] = useState(false);
+  const [rating, setRating] = useState(null);
+  useEffect(() => {
+    setCopied(false);
+    setRating(null);
+  }, [resource?.id]);
   if (!resource) return null;
 
   const copyContent = async () => {
@@ -151,6 +158,21 @@ function ResourceDialog({ resource, onClose }) {
     window.setTimeout(() => setCopied(false), 1800);
   };
   const videoUrl = resource.resourceType === "video" ? drivePreviewUrl(resource.externalUrl) : null;
+  const resourceKeywords = new Set(String(resource.keywords || "").toLocaleLowerCase("ca").split(/[ ,]+/).filter((word) => word.length > 3));
+  const relatedResources = allResources
+    .filter((candidate) => candidate.id !== resource.id)
+    .map((candidate) => ({
+      ...candidate,
+      relationScore: (candidate.category === resource.category ? 4 : 0) + String(candidate.keywords || "").toLocaleLowerCase("ca").split(/[ ,]+/).filter((word) => resourceKeywords.has(word)).length,
+    }))
+    .filter((candidate) => candidate.relationScore > 0)
+    .sort((a, b) => b.relationScore - a.relationScore)
+    .slice(0, 3);
+
+  const rateResource = async (helpful) => {
+    await onRate(resource, helpful);
+    setRating(helpful);
+  };
 
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
@@ -169,6 +191,10 @@ function ResourceDialog({ resource, onClose }) {
               {copied ? "Prompt copiat" : "Copiar el prompt"}
             </button>
           )}
+          <div className="resource-feedback">
+            {rating === null ? <><span>T’ha estat útil?</span><button type="button" onClick={() => rateResource(true)}><ThumbsUp /> Sí</button><button type="button" onClick={() => rateResource(false)}><ThumbsDown /> Encara no</button></> : <p><CheckCircle weight="fill" /> Gràcies! La teva resposta ens ajuda a millorar el Racó.</p>}
+          </div>
+          {relatedResources.length > 0 && <div className="related-resources"><span className="content-type">També et pot interessar</span>{relatedResources.map((related) => <button type="button" key={related.id} onClick={() => onOpenResource(related)}><small>{related.type}</small><strong>{related.title}</strong><ArrowRight /></button>)}</div>}
         </div>
       </section>
     </div>
@@ -257,13 +283,14 @@ function App() {
   const [selectedResource, setSelectedResource] = useState(null);
   const [consultationContext, setConsultationContext] = useState(null);
   const [adminOpen, setAdminOpen] = useState(false);
-  const [adminSection, setAdminSection] = useState("publications");
+  const [adminSection, setAdminSection] = useState("dashboard");
   const [publicView, setPublicView] = useState("home");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [publishedResources, setPublishedResources] = useState([]);
   const [consultations, setConsultations] = useState(import.meta.env.DEV ? previewConsultations : []);
   const [reminders, setReminders] = useState(import.meta.env.DEV ? previewReminders : []);
   const [toastConsultationId, setToastConsultationId] = useState(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
   const searchRef = useRef(null);
   const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL;
   const unreadConsultations = consultations.filter((consultation) => consultation.status === "new");
@@ -280,12 +307,12 @@ function App() {
   useEffect(() => {
     if (!user || import.meta.env.DEV) return undefined;
     const isAdmin = user.email?.toLowerCase() === ADMIN_EMAIL;
-    const source = isAdmin ? collection(db, "publications") : firestoreQuery(collection(db, "publications"), where("status", "==", "published"));
+    const source = isAdmin ? collection(db, "publications") : firestoreQuery(collection(db, "publications"), where("status", "in", ["published", "scheduled"]));
     return onSnapshot(source, (snapshot) => {
       const entries = snapshot.docs
         .map((entry) => {
           const data = entry.data();
-          const dateValue = data.publishedAt?.toDate?.() || data.updatedAt?.toDate?.();
+          const dateValue = data.status === "scheduled" && data.scheduledFor ? new Date(data.scheduledFor) : data.publishedAt?.toDate?.() || data.updatedAt?.toDate?.();
           return {
             id: entry.id,
             source: "firestore",
@@ -297,7 +324,8 @@ function App() {
             content: data.content,
             externalUrl: data.externalUrl,
             featured: Boolean(data.featured),
-            status: data.status === "published" ? "Publicat" : "Esborrany",
+            scheduledFor: data.scheduledFor || "",
+            status: data.status === "published" ? "Publicat" : data.status === "scheduled" ? "Programat" : "Esborrany",
             date: dateValue ? new Intl.DateTimeFormat("ca-AD", { day: "numeric", month: "short", year: "numeric" }).format(dateValue) : "Ara",
             keywords: Array.isArray(data.keywords) ? data.keywords.join(" ") : data.keywords || "",
             sortDate: dateValue?.getTime?.() || 0,
@@ -308,6 +336,11 @@ function App() {
       setPublishedResources(entries);
     });
   }, [user]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(Date.now()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!isAdmin || import.meta.env.DEV) return undefined;
@@ -382,11 +415,11 @@ function App() {
   }, []);
 
   const displayResources = useMemo(() => {
-    const visibleFirestore = publishedResources.filter((resource) => resource.publicationStatus === "published");
+    const visibleFirestore = publishedResources.filter((resource) => resource.publicationStatus === "published" || (resource.publicationStatus === "scheduled" && resource.scheduledFor && new Date(resource.scheduledFor).getTime() <= currentTime));
     const publishedTitles = new Set(visibleFirestore.map((resource) => resource.title.trim().toLocaleLowerCase("ca")));
     const pendingSeeds = resources.filter((resource) => !publishedTitles.has(resource.title.trim().toLocaleLowerCase("ca")));
     return [...visibleFirestore, ...pendingSeeds];
-  }, [publishedResources]);
+  }, [currentTime, publishedResources]);
 
   const publicationLibrary = useMemo(() => {
     const savedTitles = new Set(publishedResources.map((resource) => resource.title.trim().toLocaleLowerCase("ca")));
@@ -446,6 +479,17 @@ function App() {
     setToastConsultationId(null);
   };
 
+  const convertConsultationToReminder = async (consultation) => {
+    if (reminders.some((reminder) => reminder.sourceConsultationId === consultation.id)) return;
+    await saveReminder({
+      title: `Respondre: ${consultation.topic}`,
+      notes: `${consultation.name} · ${consultation.email}\n${consultation.message}`,
+      dueDate: new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()),
+      priority: "medium",
+      sourceConsultationId: consultation.id,
+    });
+  };
+
   const saveReminder = async (reminder) => {
     const { id, ...values } = reminder;
     if (import.meta.env.DEV) {
@@ -460,9 +504,22 @@ function App() {
     }
     await addDoc(collection(db, "reminders"), {
       ...values,
+      sourceConsultationId: values.sourceConsultationId || "",
       completed: false,
       ownerEmail: user.email,
       createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  };
+
+  const rateResource = async (resource, helpful) => {
+    if (import.meta.env.DEV) return;
+    const feedbackId = `${resource.id}_${user.uid}`.replace(/[^a-zA-Z0-9_-]/g, "_");
+    await setDoc(doc(db, "resourceFeedback", feedbackId), {
+      resourceId: resource.id,
+      resourceTitle: resource.title,
+      helpful,
+      userEmail: user.email,
       updatedAt: serverTimestamp(),
     });
   };
@@ -505,12 +562,12 @@ function App() {
             <span className="avatar">{initials}</span><span><strong>{user.displayName?.split(" ")[0] || "Educand"}</strong><small>Compte Educand</small></span>
           </button>
           {accountOpen && (
-            <div className="account-menu"><span>{user.email}</span>{isAdmin && <><strong>Administrador</strong><button type="button" onClick={() => { setAdminSection("publications"); setAdminOpen(true); setAccountOpen(false); }}>Espai de gestió {unreadConsultations.length > 0 && <span className="menu-count">{unreadConsultations.length}</span>}<ArrowRight /></button></>}{!import.meta.env.DEV && <button type="button" onClick={() => signOut(auth)}><SignOut /> Tancar sessió</button>}</div>
+            <div className="account-menu"><span>{user.email}</span>{isAdmin && <><strong>Administrador</strong><button type="button" onClick={() => { setAdminSection("dashboard"); setAdminOpen(true); setAccountOpen(false); }}>Espai de gestió {unreadConsultations.length > 0 && <span className="menu-count">{unreadConsultations.length}</span>}<ArrowRight /></button></>}{!import.meta.env.DEV && <button type="button" onClick={() => signOut(auth)}><SignOut /> Tancar sessió</button>}</div>
           )}
         </div>
       </header>
 
-      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} publications={publicationLibrary} consultations={consultations} onUpdateConsultation={updateConsultationStatus} reminders={reminders} onSaveReminder={saveReminder} onToggleReminder={toggleReminder} onDeleteReminder={deleteReminder} onClose={() => setAdminOpen(false)} onPublicationDeleted={(publicationId) => {
+      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} publications={publicationLibrary} consultations={consultations} onUpdateConsultation={updateConsultationStatus} onConvertConsultation={convertConsultationToReminder} reminders={reminders} onSaveReminder={saveReminder} onToggleReminder={toggleReminder} onDeleteReminder={deleteReminder} onClose={() => setAdminOpen(false)} onPublicationDeleted={(publicationId) => {
         if (import.meta.env.DEV) setPublishedResources((current) => current.filter((entry) => entry.id !== publicationId));
       }} onPublicationSaved={(publication) => {
         if (import.meta.env.DEV) {
@@ -571,7 +628,7 @@ function App() {
       </main>}
 
       <footer><div><strong>Racó TIC-TAC · EASEO</strong><span>Escola Andorrana de Segona Ensenyança d’Ordino</span></div><div className="footer-links"><a href="#inici">Sobre el Racó</a><button type="button" onClick={() => setConsultationContext("Consulta general")}>Contacte</button><a href="#inici">Avís legal</a></div></footer>
-      <ResourceDialog resource={selectedResource} onClose={() => setSelectedResource(null)} />
+      <ResourceDialog resource={selectedResource} resources={displayResources} onRate={rateResource} onOpenResource={setSelectedResource} onClose={() => setSelectedResource(null)} />
       {consultationContext && <ConsultationDialog user={user} context={consultationContext} onClose={() => setConsultationContext(null)} />}
       <ConsultationToast consultation={toastConsultation} onAccept={() => updateConsultationStatus(toastConsultation.id, "read")} onOpen={() => { updateConsultationStatus(toastConsultation.id, "read"); openConsultationInbox(); }} />
     </div>
