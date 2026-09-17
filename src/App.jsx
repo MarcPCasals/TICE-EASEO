@@ -317,7 +317,10 @@ function App() {
           </article>
 
           <aside className="today-column" id="avui-al-raco">
-            <div className="today-heading"><h2>Avui al Racó</h2><a href="#recursos">Veure totes les novetats <ArrowRight /></a></div>
+            <div className="today-heading">
+              <div className="today-title-block"><span>Edició digital · setembre 2026</span><h2>Avui al Racó</h2></div>
+              <a href="#recursos">Veure totes les novetats <ArrowRight /></a>
+            </div>
             {resources.slice(1).map((resource) => (
               <button className="update-row" type="button" key={resource.id} onClick={() => setSelectedResource(resource)}>
                 <span className="update-icon">{resource.id === "prompt-rubriques" ? <FileText /> : <BookOpen />}</span>

@@ -1,33 +1,29 @@
-# Design QA · portada Racó TIC-TAC
+# Design QA · «Avui al Racó» amb estil de premsa
 
-- Source image: `/var/folders/74/q1q7tp35509f8hnk93wlr6pw0000gn/T/TemporaryItems/NSIRD_screencaptureui_cEgtqa/Captura de pantalla 2026-09-17 a les 19.58.56.png`
-- Implementation screenshot: `/Users/marc/Documents/projectes/TICE-EASEO/work/framed-desktop-final.jpg`
-- Mobile screenshot: `/Users/marc/Documents/projectes/TICE-EASEO/work/framed-mobile-viewport-final.jpg`
-- Viewports: desktop `1370 × 852`; mobile `390 × 844`
-- Source pixels: `1370 × 852`
-- Implementation pixels: desktop `1370 × 852`; mobile viewport `390 × 844`
-- CSS viewport: desktop `1370 × 852`; mobile `390 × 844`
-- Pixel density: browser screenshot at CSS-pixel density
-- State captured: authenticated development preview with the three initial resources
-- Full-view comparison evidence: `/Users/marc/Documents/projectes/TICE-EASEO/work/framed-qa-side-by-side.jpg`
-- Focused-region evidence: not required; the full viewport exposes the complete hierarchy and all reference regions.
+- Referència aprovada: `/Users/marc/.codex/generated_images/01a0aedf-10b3-74a3-95c1-031476eb39ec/exec-e3df34f6-ca74-4df2-933a-278bf1190636.png`
+- Captura d’implementació: `/Users/marc/Documents/projectes/TICE-EASEO/work/today-newsprint-desktop-final.jpg`
+- Comparació directa: `/Users/marc/Documents/projectes/TICE-EASEO/work/today-newsprint-qa.jpg`
+- Captura mòbil: `/Users/marc/Documents/projectes/TICE-EASEO/work/today-newsprint-mobile-final.jpg`
+- Viewports comprovats: escriptori `1370 × 852`; mòbil `390 × 844`
+- Estat: previsualització autenticada de desenvolupament amb els tres recursos inicials.
 
-## Findings
+## Resultats
 
-- P0: none.
-- P1: none.
-- P2 resolved: the navy hero frame now measures `1035 × 390` at the source viewport and sits at the same horizontal and vertical coordinates as the reference.
-- P2 resolved: hero typography switches to white while preserving the orange signature phrase and white search surface.
-- P2 resolved: the violet note uses a handwritten editorial face; its curved arrow grows directly from the text, uses the existing icon library and remains inside the viewport.
-- Responsive check: no horizontal page overflow at either viewport; the violet annotation hides on narrow screens and the topic rail remains horizontally scrollable by design.
-- Responsive check: mobile headline and search placeholder were tightened for readable wrapping inside the framed surface.
-- Interaction check: existing search, topic, resource and consultation behavior remains unchanged.
+- P0: cap.
+- P1: cap.
+- P2 resolt: la columna queda separada mitjançant el doble filet blau i un fons crema més clar que el de la referència inicial.
+- P2 resolt: la textura de paper és una imatge real de contrast molt baix; no interfereix amb la lectura.
+- P2 resolt: la capçalera utilitza una serif clàssica de premsa, una línia d’edició taronja i una doble regla horitzontal.
+- P2 resolt: les dues novetats mantenen el contingut real del web i adopten una composició compacta en dues columnes a escriptori.
+- Responsive: a mòbil, el separador passa a la part superior, el titular conserva jerarquia i les notícies es reordenen en una sola columna.
+- Accessibilitat: no hi ha desbordament horitzontal als dos viewports i es manté un contrast alt de text.
+- Interacció: els elements de novetats continuen obrint el diàleg correcte; no hi ha errors a la consola.
 
-## Comparison history
+## Diferències intencionades respecte de la maqueta
 
-1. Initial pass: framed the hero in navy and matched the source width, but the frame sat 13 px too high and the violet note caused horizontal overflow.
-2. Final pass: matched the `1370 × 852` source geometry, added the requested curved violet arrow, removed overflow and verified the mobile breakpoint.
+- Es conserven els títols, resums, tipus i dates reals de l’aplicació en lloc dels textos inventats de la imatge de concepte.
+- L’etiqueta temporal és «Edició digital · setembre 2026», coherent amb el moment actual i reutilitzable durant el mes.
 
-## Final result
+## Resultat final
 
-**Passed.** No unresolved P0, P1 or P2 visual issues.
+**Superat.** No queden incidències visuals P0, P1 o P2 pendents.
