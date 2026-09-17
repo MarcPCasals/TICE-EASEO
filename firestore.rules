@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isEducandUser() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.matches('.*@educand[.]ad$');
+    }
+
+    function isAdmin() {
+      return isEducandUser()
+        && request.auth.token.email == 'mperezc@educand.ad';
+    }
+
+    match /consultations/{consultationId} {
+      allow create: if isEducandUser()
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.keys().hasOnly([
+          'name',
+          'email',
+          'topic',
+          'message',
+          'status',
+          'createdAt'
+        ])
+        && request.resource.data.status == 'new'
+        && request.resource.data.name is string
+        && request.resource.data.topic is string
+        && request.resource.data.message is string;
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
