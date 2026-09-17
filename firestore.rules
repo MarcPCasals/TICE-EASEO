@@ -32,6 +32,59 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    match /publications/{publicationId} {
+      allow read: if isAdmin()
+        || (isEducandUser() && resource.data.status == 'published');
+
+      allow create: if isAdmin()
+        && request.resource.data.authorEmail == request.auth.token.email
+        && request.resource.data.status in ['draft', 'published']
+        && request.resource.data.keys().hasOnly([
+          'type',
+          'typeLabel',
+          'title',
+          'summary',
+          'category',
+          'keywords',
+          'content',
+          'externalUrl',
+          'status',
+          'authorName',
+          'authorEmail',
+          'createdAt',
+          'updatedAt',
+          'publishedAt'
+        ])
+        && request.resource.data.type in ['video', 'article', 'prompt', 'template', 'images']
+        && request.resource.data.title is string
+        && request.resource.data.summary is string
+        && request.resource.data.category is string
+        && request.resource.data.keywords is list
+        && request.resource.data.content is string
+        && request.resource.data.externalUrl is string;
+
+      allow update: if isAdmin()
+        && request.resource.data.authorEmail == request.auth.token.email
+        && request.resource.data.status in ['draft', 'published']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'type',
+          'typeLabel',
+          'title',
+          'summary',
+          'category',
+          'keywords',
+          'content',
+          'externalUrl',
+          'status',
+          'authorName',
+          'authorEmail',
+          'updatedAt',
+          'publishedAt'
+        ]);
+
+      allow delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

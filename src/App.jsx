@@ -18,8 +18,9 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, onSnapshot, query as firestoreQuery, serverTimestamp, where } from "firebase/firestore";
 import { auth, db, googleProvider } from "./lib/firebase";
+import AdminWorkspace from "./AdminWorkspace";
 
 const ADMIN_EMAIL = "mperezc@educand.ad";
 const previewUser = { displayName: "Marc Pérez", email: ADMIN_EMAIL, photoURL: "" };
@@ -107,15 +108,13 @@ function ResourceDialog({ resource, onClose }) {
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section className="resource-dialog" role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="icon-button close-button" type="button" onClick={onClose} aria-label="Tancar"><X /></button>
-        {resource.image && <img className="dialog-image" src={resource.image} alt="Telèfon amb la verificació en dos passos activada" />}
+        {resource.image && <img className="dialog-image" src={resource.image} alt="Imatge del recurs" />}
         <div className="dialog-copy">
           <span className="content-type">{resource.type}</span>
           <h2 id="resource-title">{resource.title}</h2>
           <p>{resource.summary}</p>
-          <div className="preparation-note">
-            <Sparkle weight="fill" />
-            <div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div>
-          </div>
+          {resource.content ? <div className="resource-content">{resource.content}</div> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
+          {resource.externalUrl && <a className="primary-button resource-link" href={resource.externalUrl} target="_blank" rel="noreferrer">Obrir el recurs <ArrowRight weight="bold" /></a>}
           {resource.id === "prompt-rubriques" && (
             <button className="secondary-button" type="button" onClick={copyTitle}>
               {copied ? <CheckCircle weight="fill" /> : <Copy />}
@@ -198,6 +197,8 @@ function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
   const [consultationContext, setConsultationContext] = useState(null);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [publishedResources, setPublishedResources] = useState([]);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -207,6 +208,37 @@ function App() {
       setAuthReady(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (!user || import.meta.env.DEV) return undefined;
+    const isAdmin = user.email?.toLowerCase() === ADMIN_EMAIL;
+    const source = isAdmin ? collection(db, "publications") : firestoreQuery(collection(db, "publications"), where("status", "==", "published"));
+    return onSnapshot(source, (snapshot) => {
+      const entries = snapshot.docs
+        .map((entry) => {
+          const data = entry.data();
+          const dateValue = data.publishedAt?.toDate?.() || data.updatedAt?.toDate?.();
+          return {
+            id: entry.id,
+            type: data.typeLabel || "Recurs",
+            resourceType: data.type,
+            category: data.category || "Recursos",
+            title: data.title,
+            summary: data.summary,
+            content: data.content,
+            externalUrl: data.externalUrl,
+            status: data.status === "published" ? "Publicat" : "Esborrany",
+            date: dateValue ? new Intl.DateTimeFormat("ca-AD", { day: "numeric", month: "short", year: "numeric" }).format(dateValue) : "Ara",
+            keywords: Array.isArray(data.keywords) ? data.keywords.join(" ") : data.keywords || "",
+            sortDate: dateValue?.getTime?.() || 0,
+            publicationStatus: data.status,
+          };
+        })
+        .filter((entry) => isAdmin ? entry.publicationStatus === "published" : true)
+        .sort((a, b) => b.sortDate - a.sortDate);
+      setPublishedResources(entries);
+    });
+  }, [user]);
 
   useEffect(() => {
     const closeOnEscape = (event) => {
@@ -220,11 +252,17 @@ function App() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, []);
 
+  const displayResources = useMemo(() => {
+    const publishedTitles = new Set(publishedResources.map((resource) => resource.title.trim().toLocaleLowerCase("ca")));
+    const pendingSeeds = resources.slice(1).filter((resource) => !publishedTitles.has(resource.title.trim().toLocaleLowerCase("ca")));
+    return [resources[0], ...publishedResources, ...pendingSeeds];
+  }, [publishedResources]);
+
   const matches = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("ca");
-    if (!needle) return resources;
-    return resources.filter((resource) => `${resource.title} ${resource.summary} ${resource.category} ${resource.keywords}`.toLocaleLowerCase("ca").includes(needle));
-  }, [query]);
+    if (!needle) return displayResources;
+    return displayResources.filter((resource) => `${resource.title} ${resource.summary} ${resource.category} ${resource.keywords}`.toLocaleLowerCase("ca").includes(needle));
+  }, [displayResources, query]);
 
   const handleSignIn = async () => {
     setAuthBusy(true);
@@ -264,7 +302,7 @@ function App() {
       <header className="site-header">
         <Brand />
         <nav aria-label="Navegació principal">
-          <a className="active" href="#inici">Inici</a><a href="#guies">Guies</a><a href="#videotutorials">Videotutorials</a><a href="#recursos">Recursos</a><a href="#avui-al-raco">Novetats</a>
+          <a className="active" href="#inici" onClick={() => setAdminOpen(false)}>Inici</a><a href="#guies" onClick={() => setAdminOpen(false)}>Guies</a><a href="#videotutorials" onClick={() => setAdminOpen(false)}>Videotutorials</a><a href="#recursos" onClick={() => setAdminOpen(false)}>Recursos</a><a href="#avui-al-raco" onClick={() => setAdminOpen(false)}>Novetats</a>
           <button type="button" onClick={() => setConsultationContext("Consulta general")}>Consulta</button>
         </nav>
         <div className="account-wrap">
@@ -272,12 +310,16 @@ function App() {
             <span className="avatar">{initials}</span><span><strong>{user.displayName?.split(" ")[0] || "Educand"}</strong><small>Compte Educand</small></span>
           </button>
           {accountOpen && (
-            <div className="account-menu"><span>{user.email}</span>{user.email?.toLowerCase() === ADMIN_EMAIL && <strong>Administrador</strong>}{!import.meta.env.DEV && <button type="button" onClick={() => signOut(auth)}><SignOut /> Tancar sessió</button>}</div>
+            <div className="account-menu"><span>{user.email}</span>{user.email?.toLowerCase() === ADMIN_EMAIL && <><strong>Administrador</strong><button type="button" onClick={() => { setAdminOpen(true); setAccountOpen(false); }}>Espai de gestió <ArrowRight /></button></>}{!import.meta.env.DEV && <button type="button" onClick={() => signOut(auth)}><SignOut /> Tancar sessió</button>}</div>
           )}
         </div>
       </header>
 
-      <main>
+      {adminOpen ? <AdminWorkspace user={user} onClose={() => setAdminOpen(false)} onPublicationSaved={(publication) => {
+        if (import.meta.env.DEV && publication.status === "published") {
+          setPublishedResources((current) => [{ ...publication, type: publication.typeLabel, date: "Ara", keywords: publication.keywords.join(" "), sortDate: Date.now() }, ...current.filter((entry) => entry.id !== publication.id)]);
+        }
+      }} /> : <main>
         <section className="hero-section" aria-labelledby="hero-title">
           <span className="eyebrow">Tecnologia per a l’aprenentatge a l’EASEO</span>
           <h1 id="hero-title">Tens un dubte digital?<br />Aquí tens <em>la resposta.</em></h1>
@@ -308,11 +350,11 @@ function App() {
         <section className="editorial-grid" id="recursos">
           <article className="featured-resource" id="videotutorials">
             <div className="featured-copy">
-              <span className="content-type">Últim recurs</span><h2>{resources[0].title}</h2><p>{resources[0].summary}</p>
-              <button className="primary-button" type="button" onClick={() => setSelectedResource(resources[0])}>Veure la guia completa <ArrowRight weight="bold" /></button>
+              <span className="content-type">Últim recurs</span><h2>{displayResources[0].title}</h2><p>{displayResources[0].summary}</p>
+              <button className="primary-button" type="button" onClick={() => setSelectedResource(displayResources[0])}>Veure la guia completa <ArrowRight weight="bold" /></button>
             </div>
-            <button className="featured-image-button" type="button" onClick={() => setSelectedResource(resources[0])} aria-label={`Obrir: ${resources[0].title}`}>
-              <img src={resources[0].image} alt="Telèfon amb la verificació en dos passos activada" /><span className="image-label"><MonitorPlay weight="fill" /> Videotutorial</span>
+            <button className="featured-image-button" type="button" onClick={() => setSelectedResource(displayResources[0])} aria-label={`Obrir: ${displayResources[0].title}`}>
+              <img src={displayResources[0].image} alt="Telèfon amb la verificació en dos passos activada" /><span className="image-label"><MonitorPlay weight="fill" /> Videotutorial</span>
             </button>
           </article>
 
@@ -321,7 +363,7 @@ function App() {
               <div className="today-title-block"><span>Edició digital · setembre 2026</span><h2>Avui al Racó</h2></div>
               <a href="#recursos">Veure totes les novetats <ArrowRight /></a>
             </div>
-            {resources.slice(1).map((resource) => (
+            {displayResources.slice(1).map((resource) => (
               <button className="update-row" type="button" key={resource.id} onClick={() => setSelectedResource(resource)}>
                 <span className="update-icon">{resource.id === "prompt-rubriques" ? <FileText /> : <BookOpen />}</span>
                 <span className="update-copy"><small>{resource.type}</small><strong>{resource.title}</strong><span>{resource.summary}</span><time>{resource.date}</time></span>
@@ -329,7 +371,7 @@ function App() {
             ))}
           </aside>
         </section>
-      </main>
+      </main>}
 
       <footer><div><strong>Racó TIC-TAC · EASEO</strong><span>Escola Andorrana de Segona Ensenyança d’Ordino</span></div><div className="footer-links"><a href="#inici">Sobre el Racó</a><button type="button" onClick={() => setConsultationContext("Consulta general")}>Contacte</button><a href="#inici">Avís legal</a></div></footer>
       <ResourceDialog resource={selectedResource} onClose={() => setSelectedResource(null)} />
