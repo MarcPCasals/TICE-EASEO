@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   CheckCircle,
   ChatCircleDots,
+  ClipboardText,
   ClockCountdown,
   Copy,
   FileText,
@@ -29,6 +30,7 @@ import { db } from "./lib/firebase";
 import ConsultationInbox from "./ConsultationInbox";
 import ReminderBoard from "./ReminderBoard";
 import AdminDashboard from "./AdminDashboard";
+import FormManager from "./FormManager";
 
 const publicationTypes = [
   { id: "video", label: "Vídeo", publicLabel: "Videotutorial", icon: VideoCamera },
@@ -96,7 +98,7 @@ function urlRequired(type) {
   return type === "video" || type === "template" || type === "images";
 }
 
-export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPublicationDeleted, publications, section, onSectionChange, consultations, onUpdateConsultation, onConvertConsultation, reminders, onSaveReminder, onToggleReminder, onDeleteReminder }) {
+export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPublicationDeleted, publications, forms, section, onSectionChange, consultations, onUpdateConsultation, onConvertConsultation, reminders, onSaveReminder, onToggleReminder, onDeleteReminder }) {
   const [form, setForm] = useState(initialForm);
   const [publicationId, setPublicationId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -247,17 +249,18 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
 
   return (
     <main className="admin-workspace">
-      <div className="admin-breadcrumbs"><button type="button" onClick={onClose}>Espai de gestió</button><span>›</span><strong>{section === "dashboard" ? "Tauler" : section === "consultations" ? "Consultes" : section === "reminders" ? "Recordatoris" : "Publicacions"}</strong></div>
+      <div className="admin-breadcrumbs"><button type="button" onClick={onClose}>Espai de gestió</button><span>›</span><strong>{section === "dashboard" ? "Tauler" : section === "consultations" ? "Peticions" : section === "reminders" ? "Recordatoris" : section === "forms" ? "Formularis" : "Publicacions"}</strong></div>
       <button className="back-to-site" type="button" onClick={onClose}><ArrowLeft /> Tornar al web</button>
 
       <div className="admin-section-tabs" role="tablist" aria-label="Apartats de gestió">
         <button className={section === "dashboard" ? "selected" : ""} type="button" role="tab" aria-selected={section === "dashboard"} onClick={() => onSectionChange("dashboard")}><Gauge /> Tauler</button>
         <button className={section === "publications" ? "selected" : ""} type="button" role="tab" aria-selected={section === "publications"} onClick={() => onSectionChange("publications")}><FileText /> Publicacions</button>
-        <button className={section === "consultations" ? "selected" : ""} type="button" role="tab" aria-selected={section === "consultations"} onClick={() => onSectionChange("consultations")}><ChatCircleDots /> Consultes {consultations.some((item) => item.status === "new") && <span>{consultations.filter((item) => item.status === "new").length}</span>}</button>
+        <button className={section === "forms" ? "selected" : ""} type="button" role="tab" aria-selected={section === "forms"} onClick={() => onSectionChange("forms")}><ClipboardText /> Formularis</button>
+        <button className={section === "consultations" ? "selected" : ""} type="button" role="tab" aria-selected={section === "consultations"} onClick={() => onSectionChange("consultations")}><ChatCircleDots /> Peticions {consultations.some((item) => item.status === "new") && <span>{consultations.filter((item) => item.status === "new").length}</span>}</button>
         <button className={section === "reminders" ? "selected" : ""} type="button" role="tab" aria-selected={section === "reminders"} onClick={() => onSectionChange("reminders")}><CalendarCheck /> Recordatoris {reminders.some((item) => !item.completed) && <span>{reminders.filter((item) => !item.completed).length}</span>}</button>
       </div>
 
-      {section === "dashboard" ? <AdminDashboard publications={publications} consultations={consultations} reminders={reminders} onNavigate={onSectionChange} onNewPublication={openNewPublication} /> : section === "consultations" ? <ConsultationInbox consultations={consultations} reminders={reminders} onUpdateStatus={onUpdateConsultation} onConvertToReminder={onConvertConsultation} /> : section === "reminders" ? <ReminderBoard reminders={reminders} onSave={onSaveReminder} onToggle={onToggleReminder} onDelete={onDeleteReminder} /> : <>
+      {section === "dashboard" ? <AdminDashboard publications={publications} consultations={consultations} reminders={reminders} onNavigate={onSectionChange} onNewPublication={openNewPublication} /> : section === "forms" ? <FormManager forms={forms} user={user} /> : section === "consultations" ? <ConsultationInbox consultations={consultations} reminders={reminders} onUpdateStatus={onUpdateConsultation} onConvertToReminder={onConvertConsultation} /> : section === "reminders" ? <ReminderBoard reminders={reminders} onSave={onSaveReminder} onToggle={onToggleReminder} onDelete={onDeleteReminder} /> : <>
       <section className="publication-library-admin">
         <div className="publication-library-heading"><div><span className="content-type">Biblioteca privada</span><h1>Publicacions</h1><p>Recupera, duplica, programa, destaca o retira qualsevol recurs.</p></div><button className="primary-button" type="button" onClick={newPublication}><Plus weight="bold" /> Nova publicació</button></div>
         <div className="publication-admin-list">

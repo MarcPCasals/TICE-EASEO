@@ -27,6 +27,7 @@ import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import { addDoc, collection, deleteDoc, doc, onSnapshot, query as firestoreQuery, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import { auth, db, googleProvider } from "./lib/firebase";
 import AdminWorkspace from "./AdminWorkspace";
+import PublicFormPage from "./PublicFormPage";
 import ResourceCollectionPage from "./ResourceCollectionPage";
 import { promptRubriquesContent } from "./content/promptRubriques";
 
@@ -327,6 +328,8 @@ function ConsultationToast({ consultation, onAccept, onOpen }) {
 }
 
 function App() {
+  const formRoute = window.location.pathname.match(/^\/formulari\/([^/]+)\/?$/);
+  const formSlug = formRoute ? decodeURIComponent(formRoute[1]) : null;
   const [user, setUser] = useState(import.meta.env.DEV ? previewUser : null);
   const [authReady, setAuthReady] = useState(import.meta.env.DEV);
   const [authBusy, setAuthBusy] = useState(false);
@@ -341,6 +344,7 @@ function App() {
   const [publicView, setPublicView] = useState("home");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [publishedResources, setPublishedResources] = useState([]);
+  const [forms, setForms] = useState([]);
   const [consultations, setConsultations] = useState(import.meta.env.DEV ? previewConsultations : []);
   const [reminders, setReminders] = useState(import.meta.env.DEV ? previewReminders : []);
   const [toastConsultationId, setToastConsultationId] = useState(null);
@@ -395,6 +399,18 @@ function App() {
     const timer = window.setInterval(() => setCurrentTime(Date.now()), 30000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin || import.meta.env.DEV) return undefined;
+    return onSnapshot(collection(db, "forms"), (snapshot) => {
+      const entries = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() })).sort((a, b) => {
+        const aDate = a.updatedAt?.toDate?.()?.getTime?.() || 0;
+        const bDate = b.updatedAt?.toDate?.()?.getTime?.() || 0;
+        return bDate - aDate;
+      });
+      setForms(entries);
+    });
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin || import.meta.env.DEV) return undefined;
@@ -622,6 +638,8 @@ function App() {
 
   const initials = (user.displayName || user.email || "ED").split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
+  if (formSlug) return <PublicFormPage slug={formSlug} user={user} />;
+
   return (
     <div className="site-shell" id="inici">
       <header className="site-header">
@@ -640,7 +658,7 @@ function App() {
         </div>
       </header>
 
-      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} publications={publicationLibrary} consultations={consultations} onUpdateConsultation={updateConsultationStatus} onConvertConsultation={convertConsultationToReminder} reminders={reminders} onSaveReminder={saveReminder} onToggleReminder={toggleReminder} onDeleteReminder={deleteReminder} onClose={() => setAdminOpen(false)} onPublicationDeleted={(publicationId) => {
+      {adminOpen ? <AdminWorkspace user={user} section={adminSection} onSectionChange={setAdminSection} publications={publicationLibrary} forms={forms} consultations={consultations} onUpdateConsultation={updateConsultationStatus} onConvertConsultation={convertConsultationToReminder} reminders={reminders} onSaveReminder={saveReminder} onToggleReminder={toggleReminder} onDeleteReminder={deleteReminder} onClose={() => setAdminOpen(false)} onPublicationDeleted={(publicationId) => {
         if (import.meta.env.DEV) setPublishedResources((current) => current.filter((entry) => entry.id !== publicationId));
       }} onPublicationSaved={(publication) => {
         if (import.meta.env.DEV) {

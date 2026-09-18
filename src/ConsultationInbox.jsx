@@ -14,6 +14,7 @@ function statusLabel(status) {
 }
 
 function kindLabel(kind) {
+  if (kind === "form_response") return "Resposta a formulari";
   if (kind === "suggestion") return "Suggeriment";
   if (kind === "publication_request") return "Petició de publicació";
   return "Dubte";
@@ -50,8 +51,8 @@ export default function ConsultationInbox({ consultations, onUpdateStatus, onCon
     <section className="consultation-workspace">
       <header className="consultation-title">
         <span className="content-type">Safata TICE</span>
-        <h1>Consultes i propostes</h1>
-        <p>Centralitza dubtes, suggeriments i peticions de noves publicacions.</p>
+        <h1>Peticions i respostes</h1>
+        <p>Centralitza dubtes, suggeriments, peticions i respostes als formularis TICE.</p>
       </header>
 
       <div className="consultation-inbox">
@@ -85,7 +86,7 @@ export default function ConsultationInbox({ consultations, onUpdateStatus, onCon
                 <div><strong>{selected.name || "Docent Educand"}</strong><a href={`mailto:${selected.email}`}>{selected.email}</a></div>
                 <button type="button" onClick={copyEmail} aria-label="Copiar el correu"><Copy /> {copied ? "Copiat" : "Copiar"}</button>
               </div>
-              <div className="consultation-message"><ChatCircleDots weight="duotone" /><p>{selected.message}</p></div>
+              {selected.kind === "form_response" && Array.isArray(selected.answers) ? <div className="form-response-detail">{selected.answers.map((answer, index) => <div key={answer.questionId || index}><span>{answer.question}</span><p>{Array.isArray(answer.value) ? answer.value.join(" · ") : answer.value}</p></div>)}</div> : <div className="consultation-message"><ChatCircleDots weight="duotone" /><p>{selected.message}</p></div>}
               <div className="consultation-actions">
                 <a className="primary-button" href={`mailto:${selected.email}?subject=${encodeURIComponent(`Re: ${selected.topic}`)}`}><EnvelopeSimple /> Respondre per correu <ArrowSquareOut /></a>
                 <button className="secondary-button" type="button" disabled={convertedToReminder} onClick={() => onConvertToReminder(selected)}><CalendarPlus />{convertedToReminder ? "Afegida als recordatoris" : "Convertir en recordatori"}</button>

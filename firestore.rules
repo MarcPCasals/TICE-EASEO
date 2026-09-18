@@ -16,26 +16,103 @@ service cloud.firestore {
     match /consultations/{consultationId} {
       allow create: if isEducandUser()
         && request.resource.data.email == request.auth.token.email
-        && request.resource.data.keys().hasOnly([
-          'name',
-          'email',
-          'topic',
-          'kind',
-          'message',
-          'resourceId',
-          'resourceType',
-          'status',
-          'createdAt'
-        ])
         && request.resource.data.status == 'new'
         && request.resource.data.name is string
         && request.resource.data.topic is string
-        && (!('kind' in request.resource.data) || request.resource.data.kind in ['question', 'suggestion', 'publication_request'])
         && request.resource.data.message is string
-        && (!('resourceId' in request.resource.data) || request.resource.data.resourceId is string)
-        && (!('resourceType' in request.resource.data) || request.resource.data.resourceType is string);
+        && (
+          (
+            request.resource.data.keys().hasOnly([
+              'name',
+              'email',
+              'topic',
+              'kind',
+              'message',
+              'resourceId',
+              'resourceType',
+              'status',
+              'createdAt'
+            ])
+            && (!('kind' in request.resource.data) || request.resource.data.kind in ['question', 'suggestion', 'publication_request'])
+            && (!('resourceId' in request.resource.data) || request.resource.data.resourceId is string)
+            && (!('resourceType' in request.resource.data) || request.resource.data.resourceType is string)
+          )
+          ||
+          (
+            request.resource.data.keys().hasOnly([
+              'name',
+              'email',
+              'topic',
+              'kind',
+              'message',
+              'formId',
+              'formTitle',
+              'answers',
+              'status',
+              'createdAt'
+            ])
+            && request.resource.data.kind == 'form_response'
+            && request.resource.data.formId is string
+            && request.resource.data.formTitle is string
+            && request.resource.data.answers is list
+            && request.resource.data.answers.size() > 0
+            && request.resource.data.answers.size() <= 40
+            && request.resource.data.createdAt == request.time
+            && exists(/databases/$(database)/documents/forms/$(request.resource.data.formId))
+            && get(/databases/$(database)/documents/forms/$(request.resource.data.formId)).data.status == 'open'
+            && get(/databases/$(database)/documents/forms/$(request.resource.data.formId)).data.title == request.resource.data.formTitle
+            && request.resource.data.topic == request.resource.data.formTitle
+          )
+        );
 
       allow read, update, delete: if isAdmin();
+    }
+
+    match /forms/{formId} {
+      allow read: if isAdmin()
+        || (isEducandUser() && resource.data.status in ['open', 'closed']);
+
+      allow create: if isAdmin()
+        && request.resource.data.authorEmail == request.auth.token.email
+        && request.resource.data.keys().hasOnly([
+          'title',
+          'description',
+          'status',
+          'questions',
+          'authorName',
+          'authorEmail',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.title is string
+        && request.resource.data.description is string
+        && request.resource.data.status in ['draft', 'open', 'closed']
+        && request.resource.data.questions is list
+        && request.resource.data.questions.size() > 0
+        && request.resource.data.questions.size() <= 40
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isAdmin()
+        && request.resource.data.authorEmail == request.auth.token.email
+        && request.resource.data.title is string
+        && request.resource.data.description is string
+        && request.resource.data.status in ['draft', 'open', 'closed']
+        && request.resource.data.questions is list
+        && request.resource.data.questions.size() > 0
+        && request.resource.data.questions.size() <= 40
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title',
+          'description',
+          'status',
+          'questions',
+          'authorName',
+          'authorEmail',
+          'updatedAt'
+        ]);
+
+      allow delete: if isAdmin();
     }
 
     match /publications/{publicationId} {
