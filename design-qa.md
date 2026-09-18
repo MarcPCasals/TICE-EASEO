@@ -40,6 +40,40 @@ final result: passed
 
 ---
 
+# Design QA · fitxa de videotutorial i consulta contextual
+
+- Source visual truth: `/var/folders/74/q1q7tp35509f8hnk93wlr6pw0000gn/T/TemporaryItems/NSIRD_screencaptureui_YSH7Pi/Captura de pantalla 2026-09-17 a les 22.39.36.png`
+- Implementation screenshots: `/Users/marc/Documents/projectes/TICE-EASEO/work/video-modal-desktop.png` and `/Users/marc/Documents/projectes/TICE-EASEO/work/video-modal-mobile.png`
+- Viewports: desktop `1843 × 1290`; mobile `390 × 844`
+- Source pixels: `1824 × 1294`; implementation pixels: `1836 × 1290` and `390 × 844`
+- State: authenticated educator, authentication videotutorial open, contextual consultation form visible and successfully submitted.
+- Full comparison: `/Users/marc/Documents/projectes/TICE-EASEO/work/video-modal-comparison.png`
+- Comparison scope: the supplied screenshot documents the former vertical split; QA verifies the requested horizontal composition and the added per-resource consultation flow.
+
+## Findings
+
+- P0: none.
+- P1: none.
+- P2: none unresolved.
+- Layout: the video now occupies the full dialog width in a 16:9 frame; title, summary and supporting copy form a readable column beneath it.
+- Contextual consultation: every resource dialog includes a compact question box before the usefulness controls, with the resource and signed-in Educand email attached automatically.
+- Feedback: successful submission replaces the form with an explicit confirmation naming the resource; the administrator notification also shows the sender and resource title.
+- Responsive behavior: at `390 px`, the video, explanation, confirmation and usefulness controls stack without horizontal overflow.
+- Accessibility: the textarea has a resource-specific accessible label; submit, close and usefulness actions retain explicit names and keyboard focus styles.
+- Visual system: the new box uses the existing navy, violet, cream and editorial type system without adding a competing visual language.
+- Console/build: production build completed; no browser error appeared during the tested submission flow.
+
+## Comparison history
+
+1. Baseline: the video and explanation shared two narrow vertical columns, making the video too small; there was no visible resource-specific question input.
+2. Desktop pass: changed to a single-column dialog with the 16:9 player above the explanation and added the contextual question box.
+3. Functional pass: submitted a test question and verified both the success state and the new-consultation notification with the resource title.
+4. Mobile pass: verified the complete stack at `390 × 844` with no clipping or page-level horizontal overflow.
+
+final result: passed
+
+---
+
 # Design QA · gestor de recordatoris
 
 - Source visual truth: `/var/folders/74/q1q7tp35509f8hnk93wlr6pw0000gn/T/TemporaryItems/NSIRD_screencaptureui_cEgtqa/Captura de pantalla 2026-09-17 a les 19.58.56.png`

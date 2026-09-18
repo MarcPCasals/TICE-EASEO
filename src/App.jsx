@@ -7,12 +7,14 @@ import {
   BellRinging,
   ChartBar,
   CheckCircle,
+  ChatCircleDots,
   Copy,
   Devices,
   FileText,
   GoogleChromeLogo,
   MagnifyingGlass,
   MonitorPlay,
+  PaperPlaneTilt,
   SignOut,
   Sparkle,
   Star,
@@ -143,12 +145,16 @@ function FormattedResourceContent({ content }) {
   );
 }
 
-function ResourceDialog({ resource, resources: allResources, onRate, onOpenResource, onClose }) {
+function ResourceDialog({ resource, resources: allResources, user, onRate, onAskQuestion, onOpenResource, onClose }) {
   const [copied, setCopied] = useState(false);
   const [rating, setRating] = useState(null);
+  const [question, setQuestion] = useState("");
+  const [questionStatus, setQuestionStatus] = useState("idle");
   useEffect(() => {
     setCopied(false);
     setRating(null);
+    setQuestion("");
+    setQuestionStatus("idle");
   }, [resource?.id]);
   if (!resource) return null;
 
@@ -174,9 +180,22 @@ function ResourceDialog({ resource, resources: allResources, onRate, onOpenResou
     setRating(helpful);
   };
 
+  const submitQuestion = async (event) => {
+    event.preventDefault();
+    if (!question.trim()) return;
+    setQuestionStatus("sending");
+    try {
+      await onAskQuestion(resource, question.trim());
+      setQuestion("");
+      setQuestionStatus("sent");
+    } catch {
+      setQuestionStatus("error");
+    }
+  };
+
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className="resource-dialog" role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
+      <section className={`resource-dialog ${videoUrl ? "video-resource-dialog" : ""}`} role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="icon-button close-button" type="button" onClick={onClose} aria-label="Tancar"><X /></button>
         {videoUrl ? <div className="dialog-video"><iframe src={videoUrl} title={resource.title} allow="autoplay; fullscreen" allowFullScreen /></div> : resource.image && <img className="dialog-image" src={resource.image} alt="Imatge del recurs" />}
         <div className="dialog-copy">
@@ -191,6 +210,14 @@ function ResourceDialog({ resource, resources: allResources, onRate, onOpenResou
               {copied ? "Prompt copiat" : "Copiar el prompt"}
             </button>
           )}
+          <form className="resource-question-box" onSubmit={submitQuestion}>
+            <div className="resource-question-heading"><ChatCircleDots weight="duotone" /><div><strong>Tens un dubte sobre aquest recurs?</strong><span>Envia’l directament des d’aquí i la resposta t’arribarà al correu Educand.</span></div></div>
+            {questionStatus === "sent" ? <p className="resource-question-success"><CheckCircle weight="fill" /> Consulta enviada. Ja queda vinculada a «{resource.title}».</p> : <>
+              <textarea rows="3" value={question} onChange={(event) => { setQuestion(event.target.value); setQuestionStatus("idle"); }} maxLength="1200" placeholder="Escriu aquí el teu dubte…" aria-label={`Dubte sobre ${resource.title}`} required />
+              <div className="resource-question-footer"><span>{user.email}</span><button type="submit" disabled={questionStatus === "sending"}><PaperPlaneTilt weight="bold" /> {questionStatus === "sending" ? "Enviant…" : "Enviar el dubte"}</button></div>
+              {questionStatus === "error" && <p className="form-error" role="alert">No s’ha pogut enviar. Torna-ho a provar d’aquí a un moment.</p>}
+            </>}
+          </form>
           <div className="resource-feedback">
             {rating === null ? <><span>T’ha estat útil?</span><button type="button" onClick={() => rateResource(true)}><ThumbsUp /> Sí</button><button type="button" onClick={() => rateResource(false)}><ThumbsDown /> Encara no</button></> : <p><CheckCircle weight="fill" /> Gràcies! La teva resposta ens ajuda a millorar el Racó.</p>}
           </div>
@@ -524,6 +551,24 @@ function App() {
     });
   };
 
+  const submitResourceQuestion = async (resource, message) => {
+    const consultation = {
+      name: user.displayName || "Usuari Educand",
+      email: user.email,
+      topic: resource.title,
+      message,
+      resourceId: resource.id,
+      resourceType: resource.resourceType,
+      status: "new",
+      createdAt: serverTimestamp(),
+    };
+    if (import.meta.env.DEV) {
+      setConsultations((current) => [{ ...consultation, id: `consulta-${Date.now()}`, createdAt: new Date() }, ...current]);
+      return;
+    }
+    await addDoc(collection(db, "consultations"), consultation);
+  };
+
   const deleteReminder = async (reminderId) => {
     if (import.meta.env.DEV) {
       setReminders((current) => current.filter((item) => item.id !== reminderId));
@@ -628,7 +673,7 @@ function App() {
       </main>}
 
       <footer><div><strong>Racó TIC-TAC · EASEO</strong><span>Escola Andorrana de Segona Ensenyança d’Ordino</span></div><div className="footer-links"><a href="#inici">Sobre el Racó</a><button type="button" onClick={() => setConsultationContext("Consulta general")}>Contacte</button><a href="#inici">Avís legal</a></div></footer>
-      <ResourceDialog resource={selectedResource} resources={displayResources} onRate={rateResource} onOpenResource={setSelectedResource} onClose={() => setSelectedResource(null)} />
+      <ResourceDialog resource={selectedResource} resources={displayResources} user={user} onRate={rateResource} onAskQuestion={submitResourceQuestion} onOpenResource={setSelectedResource} onClose={() => setSelectedResource(null)} />
       {consultationContext && <ConsultationDialog user={user} context={consultationContext} onClose={() => setConsultationContext(null)} />}
       <ConsultationToast consultation={toastConsultation} onAccept={() => updateConsultationStatus(toastConsultation.id, "read")} onOpen={() => { updateConsultationStatus(toastConsultation.id, "read"); openConsultationInbox(); }} />
     </div>

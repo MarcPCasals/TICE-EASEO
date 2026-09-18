@@ -21,13 +21,17 @@ service cloud.firestore {
           'email',
           'topic',
           'message',
+          'resourceId',
+          'resourceType',
           'status',
           'createdAt'
         ])
         && request.resource.data.status == 'new'
         && request.resource.data.name is string
         && request.resource.data.topic is string
-        && request.resource.data.message is string;
+        && request.resource.data.message is string
+        && (!('resourceId' in request.resource.data) || request.resource.data.resourceId is string)
+        && (!('resourceType' in request.resource.data) || request.resource.data.resourceType is string);
 
       allow read, update, delete: if isAdmin();
     }
