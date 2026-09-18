@@ -30,6 +30,7 @@ import AdminWorkspace from "./AdminWorkspace";
 import PublicFormPage from "./PublicFormPage";
 import ResourceCollectionPage from "./ResourceCollectionPage";
 import FormattedContent from "./FormattedContent";
+import { aiPrivacyArticleContent } from "./content/aiPrivacyArticle";
 import { promptRubriquesContent } from "./content/promptRubriques";
 import {
   competencyTestGuidance,
@@ -55,6 +56,24 @@ const previewReminders = [
 ];
 
 const resources = [
+  {
+    id: "dades-alumnat-ia",
+    source: "seed",
+    type: "Article",
+    resourceType: "article",
+    category: "IA bàsica",
+    title: "Abans d’escriure el prompt, esborra l’alumne",
+    summary: "Quines dades no hem d’introduir en una eina d’intel·ligència artificial i com podem ensenyar l’alumnat a protegir la seva privacitat.",
+    status: "Disponible",
+    date: "18 set. 2026",
+    sortDate: new Date("2026-09-18T12:00:00+02:00").getTime(),
+    image: "/dades-ia-capcalera.jpg",
+    imageAlt: "Una docent elimina dades identificatives d’un document abans de consultar una eina d’intel·ligència artificial.",
+    keywords: "intel·ligència artificial dades alumnat privacitat anonimització protecció pedagogia aula",
+    content: aiPrivacyArticleContent,
+    featured: true,
+    publicationStatus: "published",
+  },
   {
     id: "doble-autenticacio",
     source: "seed",
@@ -280,7 +299,7 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
         </div>
         <FormattedContent content={resource.content} />
       </div>
-    ) : <FormattedContent content={resource.content} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
+    ) : <FormattedContent content={resource.content} className={resource.resourceType === "article" ? "resource-content article-content" : "resource-content"} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
   </>;
 
   const resourceActions = <>
@@ -302,14 +321,17 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
 
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className={`resource-dialog ${videoUrl ? "video-resource-dialog" : resource.image ? "image-resource-dialog" : "text-resource-dialog"}`} role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
+      <section className={`resource-dialog ${videoUrl ? "video-resource-dialog" : resource.resourceType === "article" ? "article-resource-dialog" : resource.image ? "image-resource-dialog" : "text-resource-dialog"}`} role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="icon-button close-button" type="button" onClick={onClose} aria-label="Tancar"><X /></button>
         {videoUrl ? <>
           <div className="dialog-copy video-introduction">{introduction}</div>
           <div className="dialog-video"><iframe src={videoUrl} title={resource.title} allow="autoplay; fullscreen" allowFullScreen /></div>
           <div className="dialog-copy video-actions">{resourceActions}</div>
+        </> : resource.resourceType === "article" ? <>
+          {resource.image && <figure className="article-hero"><img className="dialog-image" src={resource.image} alt={resource.imageAlt || "Imatge de capçalera de l’article"} /><figcaption>Abans de consultar una IA, cal retirar qualsevol dada que pugui identificar un alumne.</figcaption></figure>}
+          <div className="dialog-copy article-copy">{introduction}{resourceActions}</div>
         </> : <>
-          {resource.image && <img className="dialog-image" src={resource.image} alt="Imatge del recurs" />}
+          {resource.image && <img className="dialog-image" src={resource.image} alt={resource.imageAlt || "Imatge del recurs"} />}
           <div className="dialog-copy">{introduction}{resourceActions}</div>
         </>}
       </section>
@@ -553,7 +575,7 @@ function App() {
     const visibleFirestore = publishedResources.filter((resource) => resource.publicationStatus === "published" || (resource.publicationStatus === "scheduled" && resource.scheduledFor && new Date(resource.scheduledFor).getTime() <= currentTime));
     const publishedTitles = new Set(visibleFirestore.map((resource) => resource.title.trim().toLocaleLowerCase("ca")));
     const pendingSeeds = resources.filter((resource) => !publishedTitles.has(resource.title.trim().toLocaleLowerCase("ca")));
-    return [...visibleFirestore, ...pendingSeeds];
+    return [...visibleFirestore, ...pendingSeeds].sort((a, b) => (b.sortDate || 0) - (a.sortDate || 0));
   }, [currentTime, publishedResources]);
 
   const publicationLibrary = useMemo(() => {
@@ -764,7 +786,7 @@ function App() {
               <button className="primary-button" type="button" onClick={() => setSelectedResource(displayResources[0])}>Veure la guia completa <ArrowRight weight="bold" /></button>
             </div>
             <button className="featured-image-button" type="button" onClick={() => setSelectedResource(displayResources[0])} aria-label={`Obrir: ${displayResources[0].title}`}>
-              <img src={displayResources[0].image} alt="Telèfon amb la verificació en dos passos activada" /><span className="image-label"><MonitorPlay weight="fill" /> Videotutorial</span>
+              <img src={displayResources[0].image} alt={displayResources[0].imageAlt || `Imatge de ${displayResources[0].title}`} /><span className="image-label">{displayResources[0].resourceType === "video" ? <MonitorPlay weight="fill" /> : <BookOpen weight="fill" />} {displayResources[0].type}</span>
             </button>
           </article>
 

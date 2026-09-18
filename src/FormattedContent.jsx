@@ -23,18 +23,75 @@ function formatInlineText(text, keyPrefix = "inline") {
   });
 }
 
+function renderLines(lines, keyPrefix) {
+  return lines.map((line, index) => {
+    const key = `${keyPrefix}-${index}`;
+    if (!line) return <span className="resource-content-space" key={key} aria-hidden="true" />;
+    if (line.startsWith("## ")) return <h3 key={key}>{formatInlineText(line.slice(3).replace(/^# /, ""), `heading-${key}`)}</h3>;
+    if (line.startsWith("### ")) return <h4 key={key}>{formatInlineText(line.slice(4), `subheading-${key}`)}</h4>;
+    if (line.startsWith("- ")) return <p className="resource-list-item" key={key}><span aria-hidden="true">•</span><span>{formatInlineText(line.slice(2), `bullet-${key}`)}</span></p>;
+    const numbered = line.match(/^(\d+)[.)]\s+(.*)$/);
+    if (numbered) return <p className="resource-list-item" key={key}><span>{numbered[1]}.</span><span>{formatInlineText(numbered[2], `number-${key}`)}</span></p>;
+    return <p key={key}>{formatInlineText(line, `paragraph-${key}`)}</p>;
+  });
+}
+
+function parseContent(content) {
+  const lines = String(content || "").split("\n");
+  const blocks = [];
+  let plainLines = [];
+
+  const flushPlainLines = () => {
+    if (!plainLines.length) return;
+    blocks.push({ type: "plain", lines: plainLines });
+    plainLines = [];
+  };
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const directive = lines[index].match(/^:::(summary|lead|quote|callout|details)(?:\s+([^|]+?))?(?:\|(.+))?$/);
+    if (!directive) {
+      plainLines.push(lines[index]);
+      continue;
+    }
+
+    flushPlainLines();
+    const body = [];
+    index += 1;
+    while (index < lines.length && lines[index] !== ":::") {
+      body.push(lines[index]);
+      index += 1;
+    }
+    blocks.push({
+      type: directive[1],
+      tone: directive[2]?.trim() || "violet",
+      title: directive[3]?.trim() || "",
+      lines: body,
+    });
+  }
+
+  flushPlainLines();
+  return blocks;
+}
+
+function ContentBlock({ block, index }) {
+  const children = renderLines(block.lines, `block-${index}`);
+  if (block.type === "summary") return <aside className="article-summary"><strong>Si només tens un minut</strong>{children}</aside>;
+  if (block.type === "lead") return <div className="article-lead">{children}</div>;
+  if (block.type === "quote") return <blockquote className="article-quote">{children}</blockquote>;
+  if (block.type === "callout") return <aside className={`article-callout tone-${block.tone}`}>{block.title && <strong>{block.title}</strong>}{children}</aside>;
+  if (block.type === "details") return (
+    <details className={`article-details tone-${block.tone}`}>
+      <summary><span>{block.title}</span></summary>
+      <div className="article-details-body">{children}</div>
+    </details>
+  );
+  return children;
+}
+
 export default function FormattedContent({ content, className = "resource-content" }) {
   return (
     <div className={className}>
-      {String(content || "").split("\n").map((line, index) => {
-        if (!line) return <span className="resource-content-space" key={index} aria-hidden="true" />;
-        if (line.startsWith("## ")) return <h3 key={index}>{formatInlineText(line.slice(3).replace(/^# /, ""), `heading-${index}`)}</h3>;
-        if (line.startsWith("### ")) return <h4 key={index}>{formatInlineText(line.slice(4), `subheading-${index}`)}</h4>;
-        if (line.startsWith("- ")) return <p className="resource-list-item" key={index}><span aria-hidden="true">•</span><span>{formatInlineText(line.slice(2), `bullet-${index}`)}</span></p>;
-        const numbered = line.match(/^(\d+)[.)]\s+(.*)$/);
-        if (numbered) return <p className="resource-list-item" key={index}><span>{numbered[1]}.</span><span>{formatInlineText(numbered[2], `number-${index}`)}</span></p>;
-        return <p key={index}>{formatInlineText(line, `paragraph-${index}`)}</p>;
-      })}
+      {parseContent(content).map((block, index) => <ContentBlock block={block} index={index} key={`${block.type}-${index}`} />)}
     </div>
   );
 }
