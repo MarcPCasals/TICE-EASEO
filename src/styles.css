@@ -165,12 +165,12 @@ footer strong { color: var(--navy); }
 .resource-dialog { display: grid; grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr); }
 .resource-dialog.text-resource-dialog { width: min(1420px, calc(100vw - 88px)); max-height: calc(100vh - 40px); display: block; }
 .text-resource-dialog .dialog-copy { width: 100%; padding: 58px clamp(34px, 5vw, 82px) 64px; }
-.text-resource-dialog .dialog-copy h2 { max-width: 1050px; font-size: clamp(2.8rem, 4.2vw, 4.5rem); }
-.text-resource-dialog .dialog-copy > p { max-width: 980px; font-size: 1.03rem; }
+.text-resource-dialog .dialog-copy h2 { width: 100%; max-width: none; font-size: clamp(2.8rem, 4.2vw, 4.5rem); }
+.text-resource-dialog .dialog-copy > p { width: 100%; max-width: none; font-size: 1.03rem; }
 .text-resource-dialog .resource-content { max-height: none; overflow: visible; padding: 74px clamp(22px, 3.4vw, 48px) 32px; font-size: 0.96rem; }
-.resource-guidance { max-width: 1030px; margin: 25px 0 7px; padding: 18px 22px; border-left: 4px solid var(--orange); background: #faf6f0; color: var(--navy); line-height: 1.62; }
+.resource-guidance { width: 100%; max-width: none; margin: 25px 0 7px; padding: 18px 22px; border-left: 4px solid var(--orange); background: #faf6f0; color: var(--navy); line-height: 1.62; }
 .resource-guidance p { margin: 0; }
-.prompt-content-frame { width: min(980px, calc(100% - clamp(130px, 14vw, 220px))); max-height: min(56vh, 650px); overflow: auto; margin: 0 auto 24px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fbfaf6; scrollbar-color: rgba(23, 58, 94, 0.42) transparent; scrollbar-width: thin; }
+.prompt-content-frame { width: min(980px, calc(100% - clamp(130px, 14vw, 220px))); max-height: min(56vh, 650px); overflow: auto; margin: 0 auto 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fbfaf6; scrollbar-color: rgba(23, 58, 94, 0.42) transparent; scrollbar-width: thin; }
 .prompt-content-frame .resource-content { margin: 0; border: 0; background: transparent; }
 .prompt-copy-sticky { position: sticky; z-index: 3; top: 0; height: 0; display: flex; justify-content: flex-end; padding: 12px 14px 0; }
 .prompt-copy-button { min-height: 48px; display: inline-flex; align-items: center; gap: 9px; border: 0; padding: 0 18px; color: var(--white); background: var(--orange); box-shadow: 0 8px 22px rgba(237, 93, 21, 0.24); font-weight: 800; cursor: pointer; }
