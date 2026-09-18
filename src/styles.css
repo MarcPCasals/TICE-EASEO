@@ -172,6 +172,10 @@ footer strong { color: var(--navy); }
 .video-resource-dialog .dialog-copy { position: relative; z-index: 1; flex: 0 0 auto; align-self: stretch; width: min(920px, 100%); margin-inline: auto; padding: 44px 54px 52px; background: var(--white); }
 .video-resource-dialog .dialog-copy h2 { max-width: 850px; font-size: clamp(2.7rem, 4.2vw, 3.9rem); }
 .video-resource-dialog .dialog-copy > p { max-width: 780px; font-size: 1.02rem; }
+.video-resource-dialog .video-introduction { padding-top: 56px; padding-bottom: 40px; }
+.video-resource-dialog .video-introduction .resource-content { max-height: none; margin-bottom: 0; }
+.video-resource-dialog .video-actions { padding-top: 32px; }
+.video-resource-dialog .video-actions .resource-question-box { margin-top: 0; }
 .dialog-copy { align-self: center; padding: 54px; }
 .dialog-copy h2, .consultation-dialog h2, .success-message h2 { margin: 9px 0 15px; font-family: var(--serif); font-size: 2.6rem; line-height: 1; }
 .dialog-copy > p, .consultation-dialog form > p, .success-message p { color: var(--muted); line-height: 1.65; }
@@ -671,6 +675,7 @@ footer strong { color: var(--navy); }
   .dialog-image { min-height: 250px; max-height: 310px; }
   .dialog-copy, .consultation-dialog { padding: 38px 23px 26px; }
   .video-resource-dialog .dialog-copy { padding: 30px 23px 32px; }
+  .video-resource-dialog .video-introduction { padding-top: 62px; }
   .video-resource-dialog .dialog-copy h2 { font-size: 2.35rem; }
   .dialog-copy h2, .consultation-dialog h2 { font-size: 2.15rem; }
   .resource-feedback { align-items: stretch; }

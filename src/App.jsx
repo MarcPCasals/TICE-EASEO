@@ -193,36 +193,47 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
     }
   };
 
+  const introduction = <>
+    <span className="content-type">{resource.type}</span>
+    <h2 id="resource-title">{resource.title}</h2>
+    <p>{resource.summary}</p>
+    {resource.content ? <FormattedResourceContent content={resource.content} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
+  </>;
+
+  const resourceActions = <>
+    {resource.externalUrl && !videoUrl && <a className="primary-button resource-link" href={resource.externalUrl} target="_blank" rel="noreferrer">{resource.externalUrl.endsWith(".docx") ? "Descarregar el document" : "Obrir el recurs"} <ArrowRight weight="bold" /></a>}
+    {resource.resourceType === "prompt" && resource.content && (
+      <button className="secondary-button" type="button" onClick={copyContent}>
+        {copied ? <CheckCircle weight="fill" /> : <Copy />}
+        {copied ? "Prompt copiat" : "Copiar el prompt"}
+      </button>
+    )}
+    <form className="resource-question-box" onSubmit={submitQuestion}>
+      <div className="resource-question-heading"><ChatCircleDots weight="duotone" /><div><strong>Tens un dubte sobre aquest recurs?</strong><span>Envia’l directament des d’aquí i la resposta t’arribarà al correu Educand.</span></div></div>
+      {questionStatus === "sent" ? <p className="resource-question-success"><CheckCircle weight="fill" /> Consulta enviada. Ja queda vinculada a «{resource.title}».</p> : <>
+        <textarea rows="3" value={question} onChange={(event) => { setQuestion(event.target.value); setQuestionStatus("idle"); }} maxLength="1200" placeholder="Escriu aquí el teu dubte…" aria-label={`Dubte sobre ${resource.title}`} required />
+        <div className="resource-question-footer"><span>{user.email}</span><button type="submit" disabled={questionStatus === "sending"}><PaperPlaneTilt weight="bold" /> {questionStatus === "sending" ? "Enviant…" : "Enviar el dubte"}</button></div>
+        {questionStatus === "error" && <p className="form-error" role="alert">No s’ha pogut enviar. Torna-ho a provar d’aquí a un moment.</p>}
+      </>}
+    </form>
+    <div className="resource-feedback">
+      {rating === null ? <><span>T’ha estat útil?</span><button type="button" onClick={() => rateResource(true)}><ThumbsUp /> Sí</button><button type="button" onClick={() => rateResource(false)}><ThumbsDown /> Encara no</button></> : <p><CheckCircle weight="fill" /> Gràcies! La teva resposta ens ajuda a millorar el Racó.</p>}
+    </div>
+    {relatedResources.length > 0 && <div className="related-resources"><span className="content-type">També et pot interessar</span>{relatedResources.map((related) => <button type="button" key={related.id} onClick={() => onOpenResource(related)}><small>{related.type}</small><strong>{related.title}</strong><ArrowRight /></button>)}</div>}
+  </>;
+
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section className={`resource-dialog ${videoUrl ? "video-resource-dialog" : ""}`} role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="icon-button close-button" type="button" onClick={onClose} aria-label="Tancar"><X /></button>
-        {videoUrl ? <div className="dialog-video"><iframe src={videoUrl} title={resource.title} allow="autoplay; fullscreen" allowFullScreen /></div> : resource.image && <img className="dialog-image" src={resource.image} alt="Imatge del recurs" />}
-        <div className="dialog-copy">
-          <span className="content-type">{resource.type}</span>
-          <h2 id="resource-title">{resource.title}</h2>
-          <p>{resource.summary}</p>
-          {resource.content ? <FormattedResourceContent content={resource.content} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
-          {resource.externalUrl && !videoUrl && <a className="primary-button resource-link" href={resource.externalUrl} target="_blank" rel="noreferrer">{resource.externalUrl.endsWith(".docx") ? "Descarregar el document" : "Obrir el recurs"} <ArrowRight weight="bold" /></a>}
-          {resource.resourceType === "prompt" && resource.content && (
-            <button className="secondary-button" type="button" onClick={copyContent}>
-              {copied ? <CheckCircle weight="fill" /> : <Copy />}
-              {copied ? "Prompt copiat" : "Copiar el prompt"}
-            </button>
-          )}
-          <form className="resource-question-box" onSubmit={submitQuestion}>
-            <div className="resource-question-heading"><ChatCircleDots weight="duotone" /><div><strong>Tens un dubte sobre aquest recurs?</strong><span>Envia’l directament des d’aquí i la resposta t’arribarà al correu Educand.</span></div></div>
-            {questionStatus === "sent" ? <p className="resource-question-success"><CheckCircle weight="fill" /> Consulta enviada. Ja queda vinculada a «{resource.title}».</p> : <>
-              <textarea rows="3" value={question} onChange={(event) => { setQuestion(event.target.value); setQuestionStatus("idle"); }} maxLength="1200" placeholder="Escriu aquí el teu dubte…" aria-label={`Dubte sobre ${resource.title}`} required />
-              <div className="resource-question-footer"><span>{user.email}</span><button type="submit" disabled={questionStatus === "sending"}><PaperPlaneTilt weight="bold" /> {questionStatus === "sending" ? "Enviant…" : "Enviar el dubte"}</button></div>
-              {questionStatus === "error" && <p className="form-error" role="alert">No s’ha pogut enviar. Torna-ho a provar d’aquí a un moment.</p>}
-            </>}
-          </form>
-          <div className="resource-feedback">
-            {rating === null ? <><span>T’ha estat útil?</span><button type="button" onClick={() => rateResource(true)}><ThumbsUp /> Sí</button><button type="button" onClick={() => rateResource(false)}><ThumbsDown /> Encara no</button></> : <p><CheckCircle weight="fill" /> Gràcies! La teva resposta ens ajuda a millorar el Racó.</p>}
-          </div>
-          {relatedResources.length > 0 && <div className="related-resources"><span className="content-type">També et pot interessar</span>{relatedResources.map((related) => <button type="button" key={related.id} onClick={() => onOpenResource(related)}><small>{related.type}</small><strong>{related.title}</strong><ArrowRight /></button>)}</div>}
-        </div>
+        {videoUrl ? <>
+          <div className="dialog-copy video-introduction">{introduction}</div>
+          <div className="dialog-video"><iframe src={videoUrl} title={resource.title} allow="autoplay; fullscreen" allowFullScreen /></div>
+          <div className="dialog-copy video-actions">{resourceActions}</div>
+        </> : <>
+          {resource.image && <img className="dialog-image" src={resource.image} alt="Imatge del recurs" />}
+          <div className="dialog-copy">{introduction}{resourceActions}</div>
+        </>}
       </section>
     </div>
   );
