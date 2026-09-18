@@ -1,5 +1,5 @@
-const CACHE_NAME = "raco-tic-tac-v2";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/tice-mark-v2.svg"];
+const CACHE_NAME = "raco-tic-tac-v3";
+const APP_SHELL = ["/", "/manifest.webmanifest", "/tice-mark-v3.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));

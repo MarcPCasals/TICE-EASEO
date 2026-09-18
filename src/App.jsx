@@ -416,7 +416,7 @@ function App() {
     const favicon = document.querySelector('link[rel="icon"]');
     if (!favicon) return;
     if (!count) {
-      favicon.href = "/tice-mark-v2.svg";
+      favicon.href = "/tice-mark-v3.svg";
       return;
     }
     const canvas = document.createElement("canvas");
@@ -428,16 +428,16 @@ function App() {
       context.drawImage(image, 0, 0, 192, 192);
       context.fillStyle = "#c894d5";
       context.beginPath();
-      context.arc(151, 42, 35, 0, Math.PI * 2);
+      context.arc(159, 34, 29, 0, Math.PI * 2);
       context.fill();
       context.fillStyle = "#173a5e";
-      context.font = "bold 39px DM Sans, sans-serif";
+      context.font = "bold 34px DM Sans, sans-serif";
       context.textAlign = "center";
       context.textBaseline = "middle";
-      context.fillText(String(Math.min(count, 9)), 151, 44);
+      context.fillText(String(Math.min(count, 9)), 159, 36);
       favicon.href = canvas.toDataURL("image/png");
     };
-    image.src = "/icon-192-v2.png";
+    image.src = "/icon-192-v3.png";
   }, [isAdmin, unreadConsultations.length]);
 
   useEffect(() => {
