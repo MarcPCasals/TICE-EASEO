@@ -320,7 +320,7 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
   </>;
 
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+    <div className={`modal-backdrop ${resource.resourceType === "article" ? "article-page-backdrop" : ""}`} role="presentation" onMouseDown={onClose}>
       <section className={`resource-dialog ${videoUrl ? "video-resource-dialog" : resource.resourceType === "article" ? "article-resource-dialog" : resource.image ? "image-resource-dialog" : "text-resource-dialog"}`} role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="icon-button close-button" type="button" onClick={onClose} aria-label="Tancar"><X /></button>
         {videoUrl ? <>
