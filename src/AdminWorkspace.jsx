@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Article,
   ArrowLeft,
@@ -31,6 +31,7 @@ import ConsultationInbox from "./ConsultationInbox";
 import ReminderBoard from "./ReminderBoard";
 import AdminDashboard from "./AdminDashboard";
 import FormManager from "./FormManager";
+import FormattedContent from "./FormattedContent";
 
 const publicationTypes = [
   { id: "video", label: "Vídeo", publicLabel: "Videotutorial", icon: VideoCamera },
@@ -105,6 +106,7 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
   const [feedback, setFeedback] = useState(null);
   const [error, setError] = useState("");
   const [currentStatus, setCurrentStatus] = useState(null);
+  const contentEditorRef = useRef(null);
 
   const selectedType = useMemo(
     () => publicationTypes.find((type) => type.id === form.type) || publicationTypes[2],
@@ -120,6 +122,35 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
     setForm((current) => ({ ...current, [field]: value }));
     setFeedback(null);
     setError("");
+  };
+
+  const formatSelection = (before, after, placeholder) => {
+    const editor = contentEditorRef.current;
+    if (!editor) return;
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const selected = form.content.slice(start, end) || placeholder;
+    const nextContent = `${form.content.slice(0, start)}${before}${selected}${after}${form.content.slice(end)}`;
+    changeField("content", nextContent);
+    window.requestAnimationFrame(() => {
+      editor.focus();
+      editor.setSelectionRange(start + before.length, start + before.length + selected.length);
+    });
+  };
+
+  const formatLines = (prefix) => {
+    const editor = contentEditorRef.current;
+    if (!editor) return;
+    const start = form.content.lastIndexOf("\n", Math.max(0, editor.selectionStart - 1)) + 1;
+    const nextBreak = form.content.indexOf("\n", editor.selectionEnd);
+    const end = nextBreak === -1 ? form.content.length : nextBreak;
+    const block = form.content.slice(start, end);
+    const lines = block.split("\n").map((line, index) => `${prefix === "1. " ? `${index + 1}. ` : prefix}${line}`).join("\n");
+    changeField("content", `${form.content.slice(0, start)}${lines}${form.content.slice(end)}`);
+    window.requestAnimationFrame(() => {
+      editor.focus();
+      editor.setSelectionRange(start, start + lines.length);
+    });
   };
 
   const newPublication = () => {
@@ -299,11 +330,20 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
             <label><span className="field-label">Temàtica <b>*</b></span><select value={form.category} onChange={(event) => changeField("category", event.target.value)}>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
             <label><span className="field-label">Paraules clau</span><input value={form.keywords} onChange={(event) => changeField("keywords", event.target.value)} placeholder="IA, avaluació, rúbriques…" /><small>Separa-les amb comes.</small></label>
             <label className="field-wide featured-toggle"><input type="checkbox" checked={Boolean(form.featured)} onChange={(event) => changeField("featured", event.target.checked)} /><span><Star weight={form.featured ? "fill" : "regular"} /><b>Destacar aquesta publicació</b><small>Apareixerà a la pàgina de Destacats, ordenada pel seu tipus.</small></span></label>
-            <label className="field-wide content-editor-label"><span className="field-label">{contentLabel(form.type)} <b>*</b></span>
-              <div className="editor-toolbar" aria-hidden="true"><TextB /><TextItalic /><ListBullets /><ListNumbers /><LinkSimple /></div>
-              <textarea rows="8" value={form.content} maxLength="30000" onChange={(event) => changeField("content", event.target.value)} placeholder={`Comença a escriure el ${selectedType.label.toLocaleLowerCase("ca")} aquí…`} />
+            <div className="field-wide content-editor-label"><label className="field-label" htmlFor="publication-content">{contentLabel(form.type)} <b>*</b></label>
+              <div className="editor-toolbar" role="toolbar" aria-label="Format del contingut">
+                <button type="button" onClick={() => formatSelection("**", "**", "text en negreta")} title="Negreta" aria-label="Posar en negreta"><TextB /></button>
+                <button type="button" onClick={() => formatSelection("*", "*", "text en cursiva")} title="Cursiva" aria-label="Posar en cursiva"><TextItalic /></button>
+                <button type="button" onClick={() => formatLines("- ")} title="Llista amb pics" aria-label="Crear una llista amb pics"><ListBullets /></button>
+                <button type="button" onClick={() => formatLines("1. ")} title="Llista numerada" aria-label="Crear una llista numerada"><ListNumbers /></button>
+                <button type="button" onClick={() => formatSelection("[", "](https://)", "text de l’enllaç")} title="Enllaç" aria-label="Afegir un enllaç"><LinkSimple /></button>
+                <span className="editor-toolbar-divider" aria-hidden="true" />
+                <button className="format-color format-violet" type="button" onClick={() => formatSelection("[violeta]**", "**[/violeta]", "concepte digital")} title="Violeta per a conceptes digitals" aria-label="Aplicar l’èmfasi digital violeta"><span aria-hidden="true">A</span><small>Digital</small></button>
+                <button className="format-color format-orange" type="button" onClick={() => formatSelection("[taronja]**", "**[/taronja]", "concepte pedagògic")} title="Taronja per a conceptes pedagògics" aria-label="Aplicar l’èmfasi pedagògic taronja"><span aria-hidden="true">A</span><small>Pedagògic</small></button>
+              </div>
+              <textarea id="publication-content" ref={contentEditorRef} rows="8" value={form.content} maxLength="30000" onChange={(event) => changeField("content", event.target.value)} placeholder={`Comença a escriure el ${selectedType.label.toLocaleLowerCase("ca")} aquí…`} />
               <small>{form.content.length}/30000</small>
-            </label>
+            </div>
             {urlLabel(form.type) && <label className="field-wide"><span className="field-label">{urlLabel(form.type)} {urlRequired(form.type) && <b>*</b>}</span><input type="url" value={form.externalUrl} onChange={(event) => changeField("externalUrl", event.target.value)} placeholder="https://drive.google.com/…" /></label>}
             <label className="field-wide schedule-field"><span className="field-label">Data i hora de publicació programada</span><input type="datetime-local" value={form.scheduledFor} onChange={(event) => changeField("scheduledFor", event.target.value)} /><small>Només s’utilitzarà si prems «Programar».</small></label>
           </div>
@@ -326,7 +366,7 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
               <span className="preview-resource-icon"><PreviewIcon /></span>
               <div><small>{selectedType.publicLabel}</small><h3>{previewTitle}</h3><p>{previewSummary}</p></div>
             </article>
-            <div className="preview-content">{previewContent}</div>
+            <FormattedContent content={previewContent} className="preview-content" />
             <div className="preview-meta"><span>{form.category || "Temàtica"}</span><span>{keywords.length ? keywords.join(" · ") : "Paraules clau"}</span></div>
           </div>
         </aside>

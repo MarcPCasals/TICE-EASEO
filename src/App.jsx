@@ -29,7 +29,9 @@ import { auth, db, googleProvider } from "./lib/firebase";
 import AdminWorkspace from "./AdminWorkspace";
 import PublicFormPage from "./PublicFormPage";
 import ResourceCollectionPage from "./ResourceCollectionPage";
+import FormattedContent from "./FormattedContent";
 import { promptRubriquesContent } from "./content/promptRubriques";
+import { competencyTestPrompt, guidedPromptIntroduction, levelAdaptationPrompt, materialReviewPrompt } from "./content/guidedPrompts";
 
 const ADMIN_EMAIL = "mperezc@educand.ad";
 const previewUser = { uid: "preview-marc", displayName: "Marc Pérez", email: ADMIN_EMAIL, photoURL: "" };
@@ -75,6 +77,51 @@ const resources = [
     content: promptRubriquesContent,
     externalUrl: "/prompt-rubriques-ae.docx",
     featured: true,
+    publicationStatus: "published",
+  },
+  {
+    id: "prompt-prova-competencial-guiada",
+    source: "seed",
+    type: "Prompt guiat",
+    resourceType: "prompt",
+    category: "Biblioteca de prompts",
+    title: "Crear una prova competencial amb els teus documents",
+    summary: "Adjunta la rúbrica i els materials de classe: la IA et farà les preguntes imprescindibles i prepararà una prova alineada amb els aprenentatges esperats.",
+    status: "Disponible",
+    date: "18 set. 2026",
+    keywords: "prompt guiat prova competencial rúbrica aprenentatges esperats materials preguntes avaluació",
+    content: competencyTestPrompt,
+    featured: true,
+    publicationStatus: "published",
+  },
+  {
+    id: "prompt-adaptar-nivell-guiat",
+    source: "seed",
+    type: "Prompt guiat",
+    resourceType: "prompt",
+    category: "Biblioteca de prompts",
+    title: "Adaptar el nivell d’un material o d’una prova",
+    summary: "Converteix un material a un nivell inferior o superior mitjançant una conversa que diferencia l’accés, les bastides i els aprenentatges avaluats.",
+    status: "Disponible",
+    date: "18 set. 2026",
+    keywords: "prompt guiat adaptació nivell curs prova material bastides accessibilitat diversitat",
+    content: levelAdaptationPrompt,
+    featured: true,
+    publicationStatus: "published",
+  },
+  {
+    id: "prompt-revisar-material-guiat",
+    source: "seed",
+    type: "Prompt guiat",
+    resourceType: "prompt",
+    category: "Biblioteca de prompts",
+    title: "Revisar i millorar un material docent",
+    summary: "Una revisió guiada per millorar la claredat, l’estructura, el nivell o l’accessibilitat d’un material sense perdre’n la intenció pedagògica.",
+    status: "Disponible",
+    date: "18 set. 2026",
+    keywords: "prompt guiat revisar millorar material docent claredat estructura accessibilitat",
+    content: materialReviewPrompt,
+    featured: false,
     publicationStatus: "published",
   },
   {
@@ -144,18 +191,6 @@ function AccessGate({ onSignIn, error, busy }) {
   );
 }
 
-function FormattedResourceContent({ content }) {
-  return (
-    <div className="resource-content">
-      {content.split("\n").map((line, index) => {
-        if (!line) return <span className="resource-content-space" key={index} aria-hidden="true" />;
-        if (line.startsWith("## ")) return <h3 key={index}>{line.slice(3).replace(/^# /, "")}</h3>;
-        return <p key={index}>{line}</p>;
-      })}
-    </div>
-  );
-}
-
 function ResourceDialog({ resource, resources: allResources, user, onRate, onAskQuestion, onOpenResource, onClose }) {
   const [copied, setCopied] = useState(false);
   const [rating, setRating] = useState(null);
@@ -172,7 +207,20 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
   if (!resource) return null;
 
   const copyContent = async () => {
-    await navigator.clipboard?.writeText(resource.content || resource.title);
+    const text = resource.content || resource.title;
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const fallback = document.createElement("textarea");
+      fallback.value = text;
+      fallback.setAttribute("readonly", "");
+      fallback.style.position = "fixed";
+      fallback.style.opacity = "0";
+      document.body.appendChild(fallback);
+      fallback.select();
+      document.execCommand("copy");
+      fallback.remove();
+    }
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
@@ -210,7 +258,7 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
     <span className="content-type">{resource.type}</span>
     <h2 id="resource-title">{resource.title}</h2>
     <p>{resource.summary}</p>
-    {resource.content ? <FormattedResourceContent content={resource.content} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
+    {resource.content ? <FormattedContent content={resource.content} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
   </>;
 
   const resourceActions = <>
@@ -238,7 +286,7 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
 
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className={`resource-dialog ${videoUrl ? "video-resource-dialog" : ""}`} role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
+      <section className={`resource-dialog ${videoUrl ? "video-resource-dialog" : resource.image ? "image-resource-dialog" : "text-resource-dialog"}`} role="dialog" aria-modal="true" aria-labelledby="resource-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="icon-button close-button" type="button" onClick={onClose} aria-label="Tancar"><X /></button>
         {videoUrl ? <>
           <div className="dialog-copy video-introduction">{introduction}</div>
@@ -664,7 +712,7 @@ function App() {
         if (import.meta.env.DEV) {
           setPublishedResources((current) => [{ ...publication, source: "firestore", type: publication.typeLabel, resourceType: publication.type, date: "Ara", keywords: publication.keywords.join(" "), sortDate: Date.now(), publicationStatus: publication.status }, ...current.filter((entry) => entry.id !== publication.id)]);
         }
-      }} /> : publicView === "featured" ? <ResourceCollectionPage title="Destacats" eyebrow="Selecció del Racó" intro="Els recursos més útils per començar, ordenats per format perquè trobis ràpidament allò que necessites." resources={featuredResources} groupByType onBack={() => setPublicView("home")} onOpen={setSelectedResource} /> : publicView === "category" ? <ResourceCollectionPage title={selectedCategory} eyebrow="Biblioteca per temàtiques" intro={`Guies, vídeos i recursos de ${selectedCategory} reunits en un mateix lloc.`} resources={displayResources.filter((resource) => resource.category === selectedCategory)} onBack={() => setPublicView("home")} onOpen={setSelectedResource} /> : <main>
+      }} /> : publicView === "featured" ? <ResourceCollectionPage title="Destacats" eyebrow="Selecció del Racó" intro="Els recursos més útils per començar, ordenats per format perquè trobis ràpidament allò que necessites." resources={featuredResources} groupByType onBack={() => setPublicView("home")} onOpen={setSelectedResource} /> : publicView === "category" ? <ResourceCollectionPage title={selectedCategory} eyebrow="Biblioteca per temàtiques" intro={selectedCategory === "Biblioteca de prompts" ? guidedPromptIntroduction : `Guies, vídeos i recursos de ${selectedCategory} reunits en un mateix lloc.`} resources={displayResources.filter((resource) => resource.category === selectedCategory)} onBack={() => setPublicView("home")} onOpen={setSelectedResource} /> : <main>
         <section className="hero-section" aria-labelledby="hero-title">
           <span className="eyebrow">Tecnologia per a l’aprenentatge a l’EASEO</span>
           <h1 id="hero-title">Tens un dubte digital?<br />Aquí tens <em>la resposta.</em></h1>
