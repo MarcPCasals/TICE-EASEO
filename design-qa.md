@@ -42,20 +42,20 @@ final result: passed
 
 # Design QA · fitxa de videotutorial i consulta contextual
 
-- Source visual truth: `/var/folders/74/q1q7tp35509f8hnk93wlr6pw0000gn/T/TemporaryItems/NSIRD_screencaptureui_YSH7Pi/Captura de pantalla 2026-09-17 a les 22.39.36.png`
+- Source visual truth: `/var/folders/74/q1q7tp35509f8hnk93wlr6pw0000gn/T/TemporaryItems/NSIRD_screencaptureui_AGy6Gx/Captura de pantalla 2026-09-18 a les 8.01.35.png`
 - Implementation screenshots: `/Users/marc/Documents/projectes/TICE-EASEO/work/video-modal-desktop.png` and `/Users/marc/Documents/projectes/TICE-EASEO/work/video-modal-mobile.png`
 - Viewports: desktop `1843 × 1290`; mobile `390 × 844`
-- Source pixels: `1824 × 1294`; implementation pixels: `1836 × 1290` and `390 × 844`
+- Source pixels: `2370 × 1512`; implementation pixels: `1440 × 1000` and `390 × 844`
 - State: authenticated educator, authentication videotutorial open, contextual consultation form visible and successfully submitted.
 - Full comparison: `/Users/marc/Documents/projectes/TICE-EASEO/work/video-modal-comparison.png`
-- Comparison scope: the supplied screenshot documents the former vertical split; QA verifies the requested horizontal composition and the added per-resource consultation flow.
+- Comparison scope: the supplied screenshot documents the broken overlapping state; QA verifies that the Drive player is an isolated click target and all editorial content follows in a separate opaque block.
 
 ## Findings
 
 - P0: none.
 - P1: none.
 - P2: none unresolved.
-- Layout: the video now occupies the full dialog width in a 16:9 frame; title, summary and supporting copy form a readable column beneath it.
+- Layout: the video now occupies the full dialog width in an isolated 16:9 frame; title, summary and supporting copy form a readable opaque column beneath it with no overlap.
 - Contextual consultation: every resource dialog includes a compact question box before the usefulness controls, with the resource and signed-in Educand email attached automatically.
 - Feedback: successful submission replaces the form with an explicit confirmation naming the resource; the administrator notification also shows the sender and resource title.
 - Responsive behavior: at `390 px`, the video, explanation, confirmation and usefulness controls stack without horizontal overflow.
@@ -69,6 +69,7 @@ final result: passed
 2. Desktop pass: changed to a single-column dialog with the 16:9 player above the explanation and added the contextual question box.
 3. Functional pass: submitted a test question and verified both the success state and the new-consultation notification with the resource title.
 4. Mobile pass: verified the complete stack at `390 × 844` with no clipping or page-level horizontal overflow.
+5. Real-browser correction: the first grid-based single-column layout allowed the content layer to overlap the Drive iframe, obscuring the preview and intercepting playback clicks. Replaced that layout with an explicit vertical flex flow, an isolated 16:9 player frame and an opaque content panel beneath it; rechecked desktop and mobile states.
 
 final result: passed
 
