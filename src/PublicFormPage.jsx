@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle, PaperPlaneTilt, WarningCircle } from "@phosphor-icons/react";
 import { addDoc, collection, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { db } from "./lib/firebase";
-import { createStarterForm } from "./FormManager";
+import { createStarterForm } from "./formDefaults";
 
 function answerIsEmpty(value) {
   return Array.isArray(value) ? value.length === 0 : !String(value || "").trim();
