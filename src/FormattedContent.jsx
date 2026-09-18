@@ -30,9 +30,9 @@ export default function FormattedContent({ content, className = "resource-conten
         if (!line) return <span className="resource-content-space" key={index} aria-hidden="true" />;
         if (line.startsWith("## ")) return <h3 key={index}>{formatInlineText(line.slice(3).replace(/^# /, ""), `heading-${index}`)}</h3>;
         if (line.startsWith("### ")) return <h4 key={index}>{formatInlineText(line.slice(4), `subheading-${index}`)}</h4>;
-        if (line.startsWith("- ")) return <p className="resource-list-item" key={index}><span aria-hidden="true">•</span>{formatInlineText(line.slice(2), `bullet-${index}`)}</p>;
+        if (line.startsWith("- ")) return <p className="resource-list-item" key={index}><span aria-hidden="true">•</span><span>{formatInlineText(line.slice(2), `bullet-${index}`)}</span></p>;
         const numbered = line.match(/^(\d+)[.)]\s+(.*)$/);
-        if (numbered) return <p className="resource-list-item" key={index}><span>{numbered[1]}.</span>{formatInlineText(numbered[2], `number-${index}`)}</p>;
+        if (numbered) return <p className="resource-list-item" key={index}><span>{numbered[1]}.</span><span>{formatInlineText(numbered[2], `number-${index}`)}</span></p>;
         return <p key={index}>{formatInlineText(line, `paragraph-${index}`)}</p>;
       })}
     </div>

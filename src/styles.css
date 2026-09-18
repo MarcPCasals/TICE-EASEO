@@ -163,11 +163,18 @@ footer strong { color: var(--navy); }
 .modal-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(10, 30, 50, 0.58); backdrop-filter: blur(7px); }
 .resource-dialog, .consultation-dialog { position: relative; width: min(900px, 100%); max-height: min(760px, calc(100vh - 48px)); overflow: auto; border: 1px solid rgba(255, 255, 255, 0.75); background: var(--white); box-shadow: 0 34px 100px rgba(0, 0, 0, 0.24); }
 .resource-dialog { display: grid; grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr); }
-.resource-dialog.text-resource-dialog { width: min(1480px, calc(100vw - 48px)); max-height: calc(100vh - 40px); display: block; }
+.resource-dialog.text-resource-dialog { width: min(1420px, calc(100vw - 88px)); max-height: calc(100vh - 40px); display: block; }
 .text-resource-dialog .dialog-copy { width: 100%; padding: 58px clamp(34px, 5vw, 82px) 64px; }
 .text-resource-dialog .dialog-copy h2 { max-width: 1050px; font-size: clamp(2.8rem, 4.2vw, 4.5rem); }
 .text-resource-dialog .dialog-copy > p { max-width: 980px; font-size: 1.03rem; }
-.text-resource-dialog .resource-content { max-height: min(62vh, 760px); padding: 28px clamp(22px, 3.4vw, 48px); font-size: 0.96rem; }
+.text-resource-dialog .resource-content { max-height: none; overflow: visible; padding: 74px clamp(22px, 3.4vw, 48px) 32px; font-size: 0.96rem; }
+.resource-guidance { max-width: 1030px; margin: 25px 0 7px; padding: 18px 22px; border-left: 4px solid var(--orange); background: #faf6f0; color: var(--navy); line-height: 1.62; }
+.resource-guidance p { margin: 0; }
+.prompt-content-frame { width: calc(100% - clamp(58px, 7vw, 108px)); margin: 0 auto 24px 0; }
+.prompt-copy-sticky { position: sticky; z-index: 3; top: 12px; height: 0; display: flex; justify-content: flex-end; padding: 12px 14px 0; }
+.prompt-copy-button { min-height: 48px; display: inline-flex; align-items: center; gap: 9px; border: 0; padding: 0 18px; color: var(--white); background: var(--orange); box-shadow: 0 8px 22px rgba(237, 93, 21, 0.24); font-weight: 800; cursor: pointer; }
+.prompt-copy-button:hover { background: #d94e0b; }
+.prompt-copy-button svg { width: 20px; height: 20px; }
 .resource-dialog.video-resource-dialog { width: min(1180px, 100%); max-height: calc(100vh - 40px); display: flex; flex-direction: column; background: var(--white); }
 .dialog-image { width: 100%; height: 100%; min-height: 520px; object-fit: cover; }
 .dialog-video { min-height: 520px; background: var(--navy); }
@@ -794,7 +801,11 @@ footer strong { color: var(--navy); }
   .resource-dialog { grid-template-columns: 1fr; }
   .resource-dialog.text-resource-dialog { width: min(100%, calc(100vw - 24px)); }
   .text-resource-dialog .dialog-copy { padding: 54px 23px 32px; }
-  .text-resource-dialog .resource-content { max-height: 58vh; padding: 18px 15px; font-size: 0.86rem; }
+  .resource-guidance { margin-top: 21px; padding: 15px 16px; }
+  .prompt-content-frame { width: 100%; }
+  .text-resource-dialog .resource-content { padding: 70px 15px 20px; font-size: 0.86rem; }
+  .prompt-copy-sticky { top: 9px; padding-right: 9px; }
+  .prompt-copy-button { min-height: 44px; padding-inline: 14px; }
   .dialog-image { min-height: 250px; max-height: 310px; }
   .dialog-copy, .consultation-dialog { padding: 38px 23px 26px; }
   .video-resource-dialog .dialog-copy { padding: 30px 23px 32px; }

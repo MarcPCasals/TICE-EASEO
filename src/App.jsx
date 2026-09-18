@@ -31,7 +31,15 @@ import PublicFormPage from "./PublicFormPage";
 import ResourceCollectionPage from "./ResourceCollectionPage";
 import FormattedContent from "./FormattedContent";
 import { promptRubriquesContent } from "./content/promptRubriques";
-import { competencyTestPrompt, guidedPromptIntroduction, levelAdaptationPrompt, materialReviewPrompt } from "./content/guidedPrompts";
+import {
+  competencyTestGuidance,
+  competencyTestPrompt,
+  guidedPromptIntroduction,
+  levelAdaptationGuidance,
+  levelAdaptationPrompt,
+  materialReviewGuidance,
+  materialReviewPrompt,
+} from "./content/guidedPrompts";
 
 const ADMIN_EMAIL = "mperezc@educand.ad";
 const previewUser = { uid: "preview-marc", displayName: "Marc Pérez", email: ADMIN_EMAIL, photoURL: "" };
@@ -90,6 +98,7 @@ const resources = [
     status: "Disponible",
     date: "18 set. 2026",
     keywords: "prompt guiat prova competencial rúbrica aprenentatges esperats materials preguntes avaluació",
+    guidance: competencyTestGuidance,
     content: competencyTestPrompt,
     featured: true,
     publicationStatus: "published",
@@ -105,6 +114,7 @@ const resources = [
     status: "Disponible",
     date: "18 set. 2026",
     keywords: "prompt guiat adaptació nivell curs prova material bastides accessibilitat diversitat",
+    guidance: levelAdaptationGuidance,
     content: levelAdaptationPrompt,
     featured: true,
     publicationStatus: "published",
@@ -120,6 +130,7 @@ const resources = [
     status: "Disponible",
     date: "18 set. 2026",
     keywords: "prompt guiat revisar millorar material docent claredat estructura accessibilitat",
+    guidance: materialReviewGuidance,
     content: materialReviewPrompt,
     featured: false,
     publicationStatus: "published",
@@ -258,17 +269,22 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
     <span className="content-type">{resource.type}</span>
     <h2 id="resource-title">{resource.title}</h2>
     <p>{resource.summary}</p>
-    {resource.content ? <FormattedContent content={resource.content} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
+    {resource.guidance && <FormattedContent content={resource.guidance} className="resource-guidance" />}
+    {resource.content ? resource.resourceType === "prompt" ? (
+      <div className="prompt-content-frame">
+        <div className="prompt-copy-sticky">
+          <button className="prompt-copy-button" type="button" onClick={copyContent}>
+            {copied ? <CheckCircle weight="fill" /> : <Copy />}
+            {copied ? "Prompt copiat" : "Copiar el prompt"}
+          </button>
+        </div>
+        <FormattedContent content={resource.content} />
+      </div>
+    ) : <FormattedContent content={resource.content} /> : <div className="preparation-note"><Sparkle weight="fill" /><div><strong>{resource.status}</strong><span>Aquesta és la fitxa inicial. El contingut complet s’hi afegirà des de l’editor.</span></div></div>}
   </>;
 
   const resourceActions = <>
     {resource.externalUrl && !videoUrl && <a className="primary-button resource-link" href={resource.externalUrl} target="_blank" rel="noreferrer">{resource.externalUrl.endsWith(".docx") ? "Descarregar el document" : "Obrir el recurs"} <ArrowRight weight="bold" /></a>}
-    {resource.resourceType === "prompt" && resource.content && (
-      <button className="secondary-button" type="button" onClick={copyContent}>
-        {copied ? <CheckCircle weight="fill" /> : <Copy />}
-        {copied ? "Prompt copiat" : "Copiar el prompt"}
-      </button>
-    )}
     <form className="resource-question-box" onSubmit={submitQuestion}>
       <div className="resource-question-heading"><ChatCircleDots weight="duotone" /><div><strong>Pregunta o proposa</strong><span>Envia una necessitat directament des d’aquí i la resposta t’arribarà al correu Educand.</span></div></div>
       {questionStatus === "sent" ? <p className="resource-question-success"><CheckCircle weight="fill" /> Missatge enviat com a «{consultationKindLabel(questionKind)}» i vinculat a «{resource.title}».</p> : <>
@@ -427,6 +443,7 @@ function App() {
             category: data.category || "Recursos",
             title: data.title,
             summary: data.summary,
+            guidance: resources.find((seedResource) => seedResource.title === data.title)?.guidance || "",
             content: data.content,
             externalUrl: data.externalUrl,
             featured: Boolean(data.featured),
@@ -710,7 +727,7 @@ function App() {
         if (import.meta.env.DEV) setPublishedResources((current) => current.filter((entry) => entry.id !== publicationId));
       }} onPublicationSaved={(publication) => {
         if (import.meta.env.DEV) {
-          setPublishedResources((current) => [{ ...publication, source: "firestore", type: publication.typeLabel, resourceType: publication.type, date: "Ara", keywords: publication.keywords.join(" "), sortDate: Date.now(), publicationStatus: publication.status }, ...current.filter((entry) => entry.id !== publication.id)]);
+          setPublishedResources((current) => [{ ...publication, guidance: resources.find((seedResource) => seedResource.title === publication.title)?.guidance || "", source: "firestore", type: publication.typeLabel, resourceType: publication.type, date: "Ara", keywords: publication.keywords.join(" "), sortDate: Date.now(), publicationStatus: publication.status }, ...current.filter((entry) => entry.id !== publication.id)]);
         }
       }} /> : publicView === "featured" ? <ResourceCollectionPage title="Destacats" eyebrow="Selecció del Racó" intro="Els recursos més útils per començar, ordenats per format perquè trobis ràpidament allò que necessites." resources={featuredResources} groupByType onBack={() => setPublicView("home")} onOpen={setSelectedResource} /> : publicView === "category" ? <ResourceCollectionPage title={selectedCategory} eyebrow="Biblioteca per temàtiques" intro={selectedCategory === "Biblioteca de prompts" ? guidedPromptIntroduction : `Guies, vídeos i recursos de ${selectedCategory} reunits en un mateix lloc.`} resources={displayResources.filter((resource) => resource.category === selectedCategory)} onBack={() => setPublicView("home")} onOpen={setSelectedResource} /> : <main>
         <section className="hero-section" aria-labelledby="hero-title">

@@ -1,10 +1,8 @@
 export const guidedPromptIntroduction = "Copia el prompt sencer i envia’l sense modificar-lo. La IA iniciarà una conversa guiada i et farà, d’una en una, les preguntes necessàries per ajustar el resultat a la teva matèria, els sabers treballats, el curs i les necessitats reals del grup. Abans de crear res, resumirà el que ha entès i et demanarà confirmació.";
 
-export const competencyTestPrompt = `## Com funciona aquest prompt
-**Copia’l sencer i envia’l sense modificar-lo.** La IA et demanarà la rúbrica, els aprenentatges esperats, els materials treballats i les condicions de la prova. Després prepararà una proposta d’estructura perquè la confirmis abans de redactar la prova.
+export const competencyTestGuidance = `**Copia el prompt sencer i envia’l sense modificar-lo.** [violeta]**La IA iniciarà una conversa guiada**[/violeta] i et demanarà els documents i les dades imprescindibles. A partir de la [taronja]**rúbrica, els aprenentatges esperats i els materials treballats**[/taronja], prepararà una proposta d’estructura perquè la confirmis abans de redactar la prova.`;
 
-## Prompt
-Actua com a especialista en **avaluació competencial** i en disseny de proves per a educació secundària.
+export const competencyTestPrompt = `Actua com a especialista en **avaluació competencial** i en disseny de proves per a educació secundària.
 
 Vull que m’ajudis a preparar una prova competencial a partir dels documents reals que adjuntaré en aquesta conversa: la rúbrica o els aprenentatges esperats, els materials treballats a classe en Word, PDF o presentació, i les orientacions addicionals que siguin necessàries.
 
@@ -49,11 +47,9 @@ Quan una pregunta admeti diverses respostes correctes, indica els elements impre
 
 Comença ara demanant-me només el primer document que necessites.`;
 
-export const levelAdaptationPrompt = `## Com funciona aquest prompt
-**Copia’l sencer i envia’l sense modificar-lo.** La IA et demanarà el material original, el curs de partida, el curs de destinació i quin tipus d’adaptació necessites. Abans de modificar res, t’explicarà què proposa conservar i què proposa canviar.
+export const levelAdaptationGuidance = `**Copia el prompt sencer i envia’l sense modificar-lo.** [violeta]**La IA et farà preguntes breus, d’una en una**[/violeta], sobre el material original i l’adaptació necessària. Abans de modificar-lo, diferenciarà si cal [taronja]**facilitar l’accés, afegir bastides o canviar el nivell dels aprenentatges**[/taronja].`;
 
-## Prompt
-Actua com a especialista en disseny d’activitats, **avaluació competencial** i adaptació de materials educatius.
+export const levelAdaptationPrompt = `Actua com a especialista en disseny d’activitats, **avaluació competencial** i adaptació de materials educatius.
 
 Vull adaptar el nivell d’un material, una activitat o una prova. Pot ser una adaptació a un nivell inferior o superior.
 
@@ -90,11 +86,9 @@ No inventis informació que no aparegui als documents. Si proposes continguts o 
 
 Comença ara demanant-me només que adjunti o enganxi el material que vull adaptar.`;
 
-export const materialReviewPrompt = `## Com funciona aquest prompt
-**Copia’l sencer i envia’l sense modificar-lo.** La IA et preguntarà què vols millorar i revisarà el material sense substituir les teves decisions pedagògiques.
+export const materialReviewGuidance = `**Copia el prompt sencer i envia’l sense modificar-lo.** [violeta]**La IA conduirà una revisió guiada**[/violeta] i et preguntarà què vols millorar. Conservarà la [taronja]**intenció pedagògica, els aprenentatges i les decisions docents**[/taronja] abans de proposar cap canvi.`;
 
-## Prompt
-Actua com a especialista en disseny de materials educatius, comunicació clara i **accessibilitat digital**.
+export const materialReviewPrompt = `Actua com a especialista en disseny de materials educatius, comunicació clara i **accessibilitat digital**.
 
 Vull revisar i millorar un material docent que ja existeix. No el reescriguis encara.
 
