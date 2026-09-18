@@ -173,23 +173,23 @@ footer strong { color: var(--navy); }
 .article-copy { width: min(1080px, 100%); margin: 0 auto; padding: 38px clamp(24px, 5vw, 64px) 64px; }
 .article-copy > .content-type { color: var(--orange); }
 .article-copy > h2 { max-width: 880px; margin: 10px 0 17px; color: #181512; font-family: var(--serif); font-size: clamp(3.1rem, 5vw, 5rem); font-weight: 600; letter-spacing: -0.045em; line-height: 0.96; text-wrap: balance; }
-.article-copy > p { max-width: 790px; margin: 0; color: #5f5a55; font-family: var(--serif); font-size: 1.25rem; line-height: 1.55; }
+.article-copy > p { max-width: none; margin: 0; color: #5f5a55; font-family: var(--serif); font-size: 1.25rem; line-height: 1.55; text-align: justify; text-align-last: left; hyphens: auto; }
 .article-content { max-height: none; overflow: visible; margin: 32px 0 0; padding: 0; border: 0; color: #282421; background: transparent; font-size: 1.02rem; line-height: 1.78; }
-.article-content > p, .article-content > h3, .article-content > h4, .article-content > .resource-list-item, .article-content > .resource-content-space { width: min(800px, 100%); margin-inline: auto; }
+.article-content > p, .article-content > h3, .article-content > h4, .article-content > .resource-list-item, .article-content > .resource-content-space { width: 100%; margin-inline: 0; }
 .article-content h3 { margin-top: 3.4rem; margin-bottom: 0.9rem; color: #181512; font-family: var(--serif); font-size: clamp(2rem, 3.2vw, 2.8rem); font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; }
 .article-content h4 { color: #181512; }
-.article-content p { margin-top: 0.72rem; margin-bottom: 0.72rem; }
+.article-content p { margin-top: 0.72rem; margin-bottom: 0.72rem; text-align: justify; text-align-last: left; hyphens: auto; }
 .article-content strong { color: #111; }
 .article-content a { color: #6f347f; font-weight: 600; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .article-content a:hover { color: var(--orange); }
 .article-content .resource-list-item { grid-template-columns: 1.2rem minmax(0, 1fr); margin-top: 0.46rem; margin-bottom: 0.46rem; }
 .article-content .resource-list-item > span:first-child { color: var(--orange); font-weight: 800; }
-.article-summary, .article-callout, .article-quote, .article-lead, .article-details { width: min(880px, 100%); margin-inline: auto; }
+.article-summary, .article-callout, .article-quote, .article-lead, .article-details { width: 100%; margin-inline: 0; }
 .article-summary { margin-bottom: 30px; padding: 20px 24px; border-top: 5px solid var(--orange); background: #f5eef7; }
 .article-summary > strong, .article-callout > strong { display: block; margin-bottom: 7px; color: #181512; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
 .article-summary p, .article-callout p { margin: 0; }
-.article-lead { margin-bottom: 32px; padding-bottom: 30px; border-bottom: 1px solid rgba(23, 58, 94, 0.18); font-family: var(--serif); font-size: 1.2rem; line-height: 1.65; }
-.article-lead p:first-child::first-letter { float: left; margin: 0.08em 0.1em 0 0; color: var(--orange); font-family: var(--serif); font-size: 4.3rem; font-weight: 700; line-height: 0.76; }
+.article-lead { margin-bottom: 32px; padding: 4px 0 4px 25px; border-left: 5px solid #9652aa; font-family: var(--serif); font-size: 1.2rem; line-height: 1.65; }
+.article-lead-label { display: block; margin-bottom: 10px; color: #7b3f8d; font-family: "DM Sans", sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; }
 .article-callout { margin-top: 30px; margin-bottom: 30px; padding: 21px 24px; border-left: 6px solid var(--orange); background: #fff1e9; }
 .article-callout.tone-violet { border-left-color: #9652aa; background: #f5eef7; }
 .article-quote { margin-top: 30px; margin-bottom: 30px; padding: 25px 30px; border: 0; border-top: 4px double #9652aa; border-bottom: 4px double #9652aa; color: #181512; font-family: var(--serif); font-size: clamp(1.35rem, 2.4vw, 1.75rem); line-height: 1.4; text-align: center; }

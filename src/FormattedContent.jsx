@@ -76,7 +76,7 @@ function parseContent(content) {
 function ContentBlock({ block, index }) {
   const children = renderLines(block.lines, `block-${index}`);
   if (block.type === "summary") return <aside className="article-summary"><strong>Si només tens un minut</strong>{children}</aside>;
-  if (block.type === "lead") return <div className="article-lead">{children}</div>;
+  if (block.type === "lead") return <div className="article-lead"><span className="article-lead-label">Pròleg</span>{children}</div>;
   if (block.type === "quote") return <blockquote className="article-quote">{children}</blockquote>;
   if (block.type === "callout") return <aside className={`article-callout tone-${block.tone}`}>{block.title && <strong>{block.title}</strong>}{children}</aside>;
   if (block.type === "details") return (
