@@ -20,6 +20,7 @@ service cloud.firestore {
           'name',
           'email',
           'topic',
+          'kind',
           'message',
           'resourceId',
           'resourceType',
@@ -29,6 +30,7 @@ service cloud.firestore {
         && request.resource.data.status == 'new'
         && request.resource.data.name is string
         && request.resource.data.topic is string
+        && (!('kind' in request.resource.data) || request.resource.data.kind in ['question', 'suggestion', 'publication_request'])
         && request.resource.data.message is string
         && (!('resourceId' in request.resource.data) || request.resource.data.resourceId is string)
         && (!('resourceType' in request.resource.data) || request.resource.data.resourceType is string);

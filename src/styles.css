@@ -209,6 +209,11 @@ footer strong { color: var(--navy); }
 .resource-question-heading > div { display: grid; gap: 2px; }
 .resource-question-heading strong { font-family: var(--serif); font-size: 1.28rem; }
 .resource-question-heading span { color: var(--muted); font-size: 0.69rem; line-height: 1.4; }
+.consultation-kind-picker { display: flex; flex-wrap: wrap; gap: 7px; }
+.consultation-kind-picker button { min-height: 34px; border: 1px solid rgba(23, 58, 94, 0.2); padding: 0 11px; color: var(--navy); background: rgba(255, 255, 255, 0.72); font-size: 0.67rem; font-weight: 700; cursor: pointer; }
+.consultation-kind-picker button:hover { border-color: var(--violet); }
+.consultation-kind-picker button.selected { border-color: var(--navy); color: var(--white); background: var(--navy); }
+.dialog-kind-picker { margin: -3px 0 1px; }
 .resource-question-box textarea { width: 100%; border: 1px solid rgba(23, 58, 94, 0.22); border-radius: 0; padding: 12px 13px; color: var(--navy); background: var(--white); font-size: 0.82rem; line-height: 1.5; resize: vertical; }
 .resource-question-box textarea:focus { border-color: var(--navy); outline: 2px solid rgba(226, 169, 241, 0.45); }
 .resource-question-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -384,6 +389,9 @@ footer strong { color: var(--navy); }
 .consultation-avatar.large { width: 48px; height: 48px; font-size: 0.78rem; }
 .consultation-row-copy { min-width: 0; display: grid; gap: 3px; padding-right: 58px; }
 .consultation-row-copy strong { overflow: hidden; font-size: 0.78rem; text-overflow: ellipsis; white-space: nowrap; }
+.consultation-kind { width: fit-content; margin: 1px 0 2px; padding: 3px 6px; color: var(--navy); background: #edf4f2; font-size: 0.52rem; font-style: normal; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
+.consultation-kind.kind-suggestion { background: #f0e4f4; }
+.consultation-kind.kind-publication_request { color: #8b3b13; background: #fae6d8; }
 .consultation-row-copy small { overflow: hidden; color: var(--navy); font-family: var(--serif); font-size: 1rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .consultation-row-copy > span { overflow: hidden; color: var(--muted); font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; }
 .consultation-status { position: absolute; right: 15px; bottom: 17px; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }

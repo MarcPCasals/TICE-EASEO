@@ -13,6 +13,12 @@ function statusLabel(status) {
   return "Pendent";
 }
 
+function kindLabel(kind) {
+  if (kind === "suggestion") return "Suggeriment";
+  if (kind === "publication_request") return "Petició de publicació";
+  return "Dubte";
+}
+
 export default function ConsultationInbox({ consultations, onUpdateStatus, onConvertToReminder, reminders }) {
   const [filter, setFilter] = useState("open");
   const [selectedId, setSelectedId] = useState(consultations.find((item) => item.status !== "resolved")?.id || consultations[0]?.id || null);
@@ -44,8 +50,8 @@ export default function ConsultationInbox({ consultations, onUpdateStatus, onCon
     <section className="consultation-workspace">
       <header className="consultation-title">
         <span className="content-type">Safata TICE</span>
-        <h1>Consultes</h1>
-        <p>Centralitza els dubtes dels docents i respon-los des del teu correu.</p>
+        <h1>Consultes i propostes</h1>
+        <p>Centralitza dubtes, suggeriments i peticions de noves publicacions.</p>
       </header>
 
       <div className="consultation-inbox">
@@ -59,7 +65,7 @@ export default function ConsultationInbox({ consultations, onUpdateStatus, onCon
             {visibleConsultations.length ? visibleConsultations.map((consultation) => (
               <button className={`consultation-row ${consultation.id === selected?.id ? "selected" : ""} ${consultation.status === "new" ? "unread" : ""}`} type="button" key={consultation.id} onClick={() => openConsultation(consultation)}>
                 <span className="consultation-avatar">{(consultation.name || "D").split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase()}</span>
-                <span className="consultation-row-copy"><strong>{consultation.name || "Docent Educand"}</strong><small>{consultation.topic}</small><span>{consultation.message}</span></span>
+                <span className="consultation-row-copy"><strong>{consultation.name || "Docent Educand"}</strong><em className={`consultation-kind kind-${consultation.kind || "question"}`}>{kindLabel(consultation.kind)}</em><small>{consultation.topic}</small><span>{consultation.message}</span></span>
                 <span className={`consultation-status status-${consultation.status}`}>{statusLabel(consultation.status)}</span>
                 <time>{consultationDate(consultation.createdAt)}</time>
               </button>
@@ -71,7 +77,7 @@ export default function ConsultationInbox({ consultations, onUpdateStatus, onCon
           {selected ? (
             <>
               <div className="consultation-detail-heading">
-                <div><span>{statusLabel(selected.status)}</span><h2>{selected.topic}</h2></div>
+                <div><span>{kindLabel(selected.kind)} · {statusLabel(selected.status)}</span><h2>{selected.topic}</h2></div>
                 <time>{consultationDate(selected.createdAt)}</time>
               </div>
               <div className="consultation-sender">
@@ -87,7 +93,7 @@ export default function ConsultationInbox({ consultations, onUpdateStatus, onCon
                   <CheckCircle weight={selected.status === "resolved" ? "regular" : "fill"} />{selected.status === "resolved" ? "Reobrir la consulta" : "Marcar com a resolta"}
                 </button>
               </div>
-              <p className="consultation-note">La resposta s’enviarà des del teu correu habitual; aquí només en gestionem l’estat.</p>
+              <p className="consultation-note">La resposta s’enviarà des del teu correu habitual; aquí en gestiones el tipus, l’estat i, si cal, la conversió en recordatori.</p>
             </>
           ) : <div className="consultation-detail-empty"><ChatCircleDots /><h2>Selecciona una consulta</h2><p>El missatge complet apareixerà aquí.</p></div>}
         </article>

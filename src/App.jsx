@@ -33,9 +33,9 @@ import { promptRubriquesContent } from "./content/promptRubriques";
 const ADMIN_EMAIL = "mperezc@educand.ad";
 const previewUser = { uid: "preview-marc", displayName: "Marc Pérez", email: ADMIN_EMAIL, photoURL: "" };
 const previewConsultations = [
-  { id: "consulta-demo-1", name: "Laia M.", email: "laia.m@educand.ad", topic: "Autenticació de dos passos", message: "He activat la verificació de dos passos, però no sé com afegir el meu telèfon nou. Em podries indicar on es canvia?", status: "new", createdAt: new Date("2026-09-17T18:42:00+02:00") },
-  { id: "consulta-demo-2", name: "Jordi P.", email: "jordi.p@educand.ad", topic: "Gemini o ChatGPT", message: "Per preparar activitats amb documents del Drive, quina eina em recomanes fer servir i per què?", status: "read", createdAt: new Date("2026-09-17T12:18:00+02:00") },
-  { id: "consulta-demo-3", name: "Marta R.", email: "marta.r@educand.ad", topic: "Compartir una plantilla", message: "Ja he pogut duplicar la plantilla i adaptar-la al meu grup. Moltes gràcies!", status: "resolved", createdAt: new Date("2026-09-16T16:05:00+02:00") },
+  { id: "consulta-demo-1", name: "Laia M.", email: "laia.m@educand.ad", topic: "Autenticació de dos passos", kind: "question", message: "He activat la verificació de dos passos, però no sé com afegir el meu telèfon nou. Em podries indicar on es canvia?", status: "new", createdAt: new Date("2026-09-17T18:42:00+02:00") },
+  { id: "consulta-demo-2", name: "Jordi P.", email: "jordi.p@educand.ad", topic: "Gemini o ChatGPT", kind: "publication_request", message: "Podries preparar una guia per comparar aquestes eines quan treballem amb documents del Drive?", status: "read", createdAt: new Date("2026-09-17T12:18:00+02:00") },
+  { id: "consulta-demo-3", name: "Marta R.", email: "marta.r@educand.ad", topic: "Compartir una plantilla", kind: "suggestion", message: "Estaria bé afegir un exemple breu de com compartir la plantilla amb l’alumnat.", status: "resolved", createdAt: new Date("2026-09-16T16:05:00+02:00") },
 ];
 const previewReminders = [
   { id: "recordatori-demo-1", title: "Gravar el videotutorial de l’autenticació de dos passos", notes: "Preparar primer un compte de prova i comprovar que no es mostri cap dada personal.", dueDate: "2026-09-18", priority: "high", completed: false, createdAt: new Date("2026-09-17T18:10:00+02:00") },
@@ -102,6 +102,16 @@ const topics = [
   { title: "Artefactes per assignatures", subtitle: "Idees per a l’aula", icon: BookOpen, query: "artefactes" },
 ];
 
+const consultationKinds = [
+  { id: "question", label: "Dubte" },
+  { id: "suggestion", label: "Suggeriment" },
+  { id: "publication_request", label: "Petició de publicació" },
+];
+
+function consultationKindLabel(kind) {
+  return consultationKinds.find((item) => item.id === kind)?.label || "Dubte";
+}
+
 function Brand() {
   return (
     <a className="brand" href="#inici" aria-label="Racó TIC-TAC, inici">
@@ -149,11 +159,13 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
   const [copied, setCopied] = useState(false);
   const [rating, setRating] = useState(null);
   const [question, setQuestion] = useState("");
+  const [questionKind, setQuestionKind] = useState("question");
   const [questionStatus, setQuestionStatus] = useState("idle");
   useEffect(() => {
     setCopied(false);
     setRating(null);
     setQuestion("");
+    setQuestionKind("question");
     setQuestionStatus("idle");
   }, [resource?.id]);
   if (!resource) return null;
@@ -185,7 +197,7 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
     if (!question.trim()) return;
     setQuestionStatus("sending");
     try {
-      await onAskQuestion(resource, question.trim());
+      await onAskQuestion(resource, question.trim(), questionKind);
       setQuestion("");
       setQuestionStatus("sent");
     } catch {
@@ -209,10 +221,11 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
       </button>
     )}
     <form className="resource-question-box" onSubmit={submitQuestion}>
-      <div className="resource-question-heading"><ChatCircleDots weight="duotone" /><div><strong>Tens un dubte sobre aquest recurs?</strong><span>Envia’l directament des d’aquí i la resposta t’arribarà al correu Educand.</span></div></div>
-      {questionStatus === "sent" ? <p className="resource-question-success"><CheckCircle weight="fill" /> Consulta enviada. Ja queda vinculada a «{resource.title}».</p> : <>
-        <textarea rows="3" value={question} onChange={(event) => { setQuestion(event.target.value); setQuestionStatus("idle"); }} maxLength="1200" placeholder="Escriu aquí el teu dubte…" aria-label={`Dubte sobre ${resource.title}`} required />
-        <div className="resource-question-footer"><span>{user.email}</span><button type="submit" disabled={questionStatus === "sending"}><PaperPlaneTilt weight="bold" /> {questionStatus === "sending" ? "Enviant…" : "Enviar el dubte"}</button></div>
+      <div className="resource-question-heading"><ChatCircleDots weight="duotone" /><div><strong>Pregunta o proposa</strong><span>Envia una necessitat directament des d’aquí i la resposta t’arribarà al correu Educand.</span></div></div>
+      {questionStatus === "sent" ? <p className="resource-question-success"><CheckCircle weight="fill" /> Missatge enviat com a «{consultationKindLabel(questionKind)}» i vinculat a «{resource.title}».</p> : <>
+        <div className="consultation-kind-picker" role="group" aria-label="Tipus de missatge">{consultationKinds.map((kind) => <button className={questionKind === kind.id ? "selected" : ""} type="button" key={kind.id} aria-pressed={questionKind === kind.id} onClick={() => setQuestionKind(kind.id)}>{kind.label}</button>)}</div>
+        <textarea rows="3" value={question} onChange={(event) => { setQuestion(event.target.value); setQuestionStatus("idle"); }} maxLength="1200" placeholder={questionKind === "question" ? "Escriu aquí el teu dubte…" : questionKind === "suggestion" ? "Què milloraries o afegiries?" : "Quina publicació o recurs necessites?"} aria-label={`${consultationKindLabel(questionKind)} sobre ${resource.title}`} required />
+        <div className="resource-question-footer"><span>{user.email}</span><button type="submit" disabled={questionStatus === "sending"}><PaperPlaneTilt weight="bold" /> {questionStatus === "sending" ? "Enviant…" : questionKind === "question" ? "Enviar el dubte" : questionKind === "suggestion" ? "Enviar el suggeriment" : "Enviar la petició"}</button></div>
         {questionStatus === "error" && <p className="form-error" role="alert">No s’ha pogut enviar. Torna-ho a provar d’aquí a un moment.</p>}
       </>}
     </form>
@@ -241,6 +254,7 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
 
 function ConsultationDialog({ user, context, onClose }) {
   const [topic, setTopic] = useState(context || "Consulta general");
+  const [kind, setKind] = useState("question");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
@@ -256,6 +270,7 @@ function ConsultationDialog({ user, context, onClose }) {
           name: user.displayName || "Usuari Educand",
           email: user.email,
           topic,
+          kind,
           message: message.trim(),
           status: "new",
           createdAt: serverTimestamp(),
@@ -275,7 +290,7 @@ function ConsultationDialog({ user, context, onClose }) {
         {status === "sent" ? (
           <div className="success-message">
             <CheckCircle weight="fill" />
-            <span className="eyebrow">Consulta enviada</span>
+            <span className="eyebrow">Missatge enviat · {consultationKindLabel(kind)}</span>
             <h2 id="consultation-title">Ja la tenim registrada.</h2>
             <p>La resposta arribarà al teu correu Educand: <strong>{user.email}</strong>.</p>
             <button className="primary-button" type="button" onClick={onClose}>D’acord</button>
@@ -283,14 +298,15 @@ function ConsultationDialog({ user, context, onClose }) {
         ) : (
           <form onSubmit={submit}>
             <span className="eyebrow">Canal TICE</span>
-            <h2 id="consultation-title">Fes una consulta</h2>
-            <p>La consulta quedarà vinculada al teu compte Educand i la resposta t’arribarà per correu.</p>
+            <h2 id="consultation-title">Escriu-nos</h2>
+            <p>Pots enviar un dubte, fer un suggeriment o demanar una nova publicació. El missatge quedarà vinculat al teu compte Educand.</p>
+            <div className="consultation-kind-picker dialog-kind-picker" role="group" aria-label="Tipus de missatge">{consultationKinds.map((item) => <button className={kind === item.id ? "selected" : ""} type="button" key={item.id} aria-pressed={kind === item.id} onClick={() => setKind(item.id)}>{item.label}</button>)}</div>
             <label>Tema general<input value={topic} onChange={(event) => setTopic(event.target.value)} /></label>
-            <label>Explica’ns el dubte<textarea rows="6" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Què necessites resoldre?" required /></label>
+            <label>{kind === "question" ? "Explica’ns el dubte" : kind === "suggestion" ? "Explica’ns el suggeriment" : "Quina publicació necessites?"}<textarea rows="6" value={message} onChange={(event) => setMessage(event.target.value)} placeholder={kind === "question" ? "Què necessites resoldre?" : kind === "suggestion" ? "Què podríem millorar o afegir?" : "Descriu el tema o recurs que t’ajudaria."} required /></label>
             <div className="identity-row"><span>{user.displayName}</span><span>{user.email}</span></div>
             {error && <p className="form-error" role="alert">{error}</p>}
             <button className="primary-button" type="submit" disabled={status === "sending"}>
-              {status === "sending" ? "Enviant…" : "Enviar la consulta"}<ArrowRight weight="bold" />
+              {status === "sending" ? "Enviant…" : "Enviar el missatge"}<ArrowRight weight="bold" />
             </button>
           </form>
         )}
@@ -304,7 +320,7 @@ function ConsultationToast({ consultation, onAccept, onOpen }) {
   return (
     <aside className="consultation-toast" role="status" aria-live="polite">
       <span className="toast-icon"><BellRinging weight="fill" /></span>
-      <div className="toast-copy"><small>Nova consulta</small><strong>{consultation.name}</strong><span>{consultation.topic}</span></div>
+      <div className="toast-copy"><small>Nou: {consultationKindLabel(consultation.kind)}</small><strong>{consultation.name}</strong><span>{consultation.topic}</span></div>
       <div className="toast-actions"><button type="button" onClick={onAccept}>D’acord</button><button type="button" onClick={onOpen}>Llegir-la sencera <ArrowRight /></button></div>
     </aside>
   );
@@ -562,11 +578,12 @@ function App() {
     });
   };
 
-  const submitResourceQuestion = async (resource, message) => {
+  const submitResourceQuestion = async (resource, message, kind) => {
     const consultation = {
       name: user.displayName || "Usuari Educand",
       email: user.email,
       topic: resource.title,
+      kind,
       message,
       resourceId: resource.id,
       resourceType: resource.resourceType,
@@ -686,7 +703,7 @@ function App() {
       <footer><div><strong>Racó TIC-TAC · EASEO</strong><span>Escola Andorrana de Segona Ensenyança d’Ordino</span></div><div className="footer-links"><a href="#inici">Sobre el Racó</a><button type="button" onClick={() => setConsultationContext("Consulta general")}>Contacte</button><a href="#inici">Avís legal</a></div></footer>
       <ResourceDialog resource={selectedResource} resources={displayResources} user={user} onRate={rateResource} onAskQuestion={submitResourceQuestion} onOpenResource={setSelectedResource} onClose={() => setSelectedResource(null)} />
       {consultationContext && <ConsultationDialog user={user} context={consultationContext} onClose={() => setConsultationContext(null)} />}
-      <ConsultationToast consultation={toastConsultation} onAccept={() => updateConsultationStatus(toastConsultation.id, "read")} onOpen={() => { updateConsultationStatus(toastConsultation.id, "read"); openConsultationInbox(); }} />
+      <ConsultationToast consultation={toastConsultation} onAccept={() => updateConsultationStatus(toastConsultation.id, "read")} onOpen={() => { updateConsultationStatus(toastConsultation.id, "read"); setSelectedResource(null); setConsultationContext(null); openConsultationInbox(); }} />
     </div>
   );
 }
