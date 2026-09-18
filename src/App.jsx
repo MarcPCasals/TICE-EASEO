@@ -416,7 +416,7 @@ function App() {
     const favicon = document.querySelector('link[rel="icon"]');
     if (!favicon) return;
     if (!count) {
-      favicon.href = "/tice-mark.svg";
+      favicon.href = "/tice-mark-v2.svg";
       return;
     }
     const canvas = document.createElement("canvas");
@@ -437,7 +437,7 @@ function App() {
       context.fillText(String(Math.min(count, 9)), 151, 44);
       favicon.href = canvas.toDataURL("image/png");
     };
-    image.src = "/icon-192.png";
+    image.src = "/icon-192-v2.png";
   }, [isAdmin, unreadConsultations.length]);
 
   useEffect(() => {
