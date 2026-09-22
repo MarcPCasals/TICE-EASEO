@@ -14,7 +14,7 @@ import {
 } from "@phosphor-icons/react";
 import { deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "./lib/firebase";
-import { createStarterForm } from "./formDefaults";
+import { createQuestion, createStarterForm } from "./formDefaults";
 
 const questionTypes = [
   { id: "short_text", label: "Resposta curta" },
@@ -83,7 +83,7 @@ export default function FormManager({ forms, user, onPreviewChange }) {
   };
 
   const addQuestion = () => {
-    change("questions", [...form.questions, { id: questionId(), type: "short_text", label: "", required: false, options: [] }]);
+    change("questions", [...form.questions, createQuestion()]);
   };
 
   const moveQuestion = (index, offset) => {
@@ -100,13 +100,20 @@ export default function FormManager({ forms, user, onPreviewChange }) {
 
   const saveForm = async (status) => {
     const slug = slugify(form.slug);
-    const questions = form.questions.map((question) => ({
-      id: question.id,
-      type: question.type,
-      label: question.label.trim(),
-      required: Boolean(question.required),
-      options: ["single_choice", "multiple_choice"].includes(question.type) ? question.options.map((option) => option.trim()).filter(Boolean) : [],
-    }));
+    const questions = form.questions.map((question, index) => {
+      const previousQuestion = form.questions.slice(0, index).find((candidate) => candidate.id === question.showWhen?.questionId && candidate.type === "single_choice");
+      const showWhen = previousQuestion && previousQuestion.options.includes(question.showWhen?.equals)
+        ? { questionId: previousQuestion.id, equals: question.showWhen.equals }
+        : null;
+      return {
+        id: question.id,
+        type: question.type,
+        label: question.label.trim(),
+        required: Boolean(question.required),
+        options: ["single_choice", "multiple_choice"].includes(question.type) ? question.options.map((option) => option.trim()).filter(Boolean) : [],
+        ...(showWhen ? { showWhen } : {}),
+      };
+    });
     if (!form.title.trim() || !slug) {
       setError("Escriu el títol i l’enllaç del formulari.");
       return;
@@ -200,6 +207,11 @@ export default function FormManager({ forms, user, onPreviewChange }) {
                 <label><span>Enunciat</span><input value={question.label} maxLength="240" onChange={(event) => updateQuestion(question.id, "label", event.target.value)} placeholder="Escriu la pregunta" /></label>
                 <label><span>Tipus de resposta</span><select value={question.type} onChange={(event) => updateQuestion(question.id, "type", event.target.value)}>{questionTypes.map((type) => <option value={type.id} key={type.id}>{type.label}</option>)}</select></label>
                 {["single_choice", "multiple_choice"].includes(question.type) && <label className="question-options"><span>Opcions, una per línia</span><textarea rows="4" value={question.options.join("\n")} onChange={(event) => updateQuestion(question.id, "options", event.target.value.split("\n"))} /></label>}
+                <label className="question-condition"><span>Quan s’ha de mostrar?</span><select value={question.showWhen?.questionId || ""} onChange={(event) => {
+                  const parent = form.questions.find((candidate) => candidate.id === event.target.value);
+                  updateQuestion(question.id, "showWhen", parent ? { questionId: parent.id, equals: parent.options[0] || "" } : null);
+                }}><option value="">Sempre</option>{form.questions.slice(0, index).filter((candidate) => candidate.type === "single_choice" && candidate.options.length).map((candidate) => <option value={candidate.id} key={candidate.id}>Només segons: {candidate.label || `Pregunta ${form.questions.indexOf(candidate) + 1}`}</option>)}</select></label>
+                {question.showWhen?.questionId && <label className="question-condition-value"><span>Si la resposta és</span><select value={question.showWhen.equals} onChange={(event) => updateQuestion(question.id, "showWhen", { ...question.showWhen, equals: event.target.value })}>{(form.questions.find((candidate) => candidate.id === question.showWhen.questionId)?.options || []).map((option) => <option value={option} key={option}>{option}</option>)}</select></label>}
                 <label className="required-toggle"><input type="checkbox" checked={question.required} onChange={(event) => updateQuestion(question.id, "required", event.target.checked)} /><span>Resposta obligatòria</span></label>
               </div>
               <div className="question-editor-actions"><button type="button" disabled={index === 0} onClick={() => moveQuestion(index, -1)} aria-label="Pujar pregunta"><ArrowUp /></button><button type="button" disabled={index === form.questions.length - 1} onClick={() => moveQuestion(index, 1)} aria-label="Baixar pregunta"><ArrowDown /></button><button type="button" onClick={() => removeQuestion(question.id)} aria-label="Eliminar pregunta"><Trash /></button></div>

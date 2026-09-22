@@ -44,15 +44,22 @@ export default function PublicFormPage({ slug, user }) {
     setAnswer(questionId, current.includes(option) ? current.filter((value) => value !== option) : [...current, option]);
   };
 
+  const isQuestionVisible = (question) => {
+    if (!question.showWhen?.questionId) return true;
+    const parentAnswer = answers[question.showWhen.questionId];
+    return Array.isArray(parentAnswer) ? parentAnswer.includes(question.showWhen.equals) : parentAnswer === question.showWhen.equals;
+  };
+
   const submit = async (event) => {
     event.preventDefault();
-    const missing = form.questions.find((question) => question.required && answerIsEmpty(answers[question.id]));
+    const visibleQuestions = form.questions.filter(isQuestionVisible);
+    const missing = visibleQuestions.find((question) => question.required && answerIsEmpty(answers[question.id]));
     if (missing) {
       setError(`Falta respondre: “${missing.label}”.`);
       document.getElementById(`question-${missing.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    const answerList = form.questions
+    const answerList = visibleQuestions
       .map((question) => ({ questionId: question.id, question: question.label, value: answers[question.id] || (question.type === "multiple_choice" ? [] : "") }))
       .filter((answer) => !answerIsEmpty(answer.value));
     const message = answerList.map((answer) => `${answer.question}\n${Array.isArray(answer.value) ? answer.value.join(", ") : answer.value}`).join("\n\n");
@@ -90,7 +97,7 @@ export default function PublicFormPage({ slug, user }) {
           <>
             <section className="public-form-intro"><span className="content-type">Formulari TICE · EASEO</span><h1>{form.title}</h1><p>{form.description}</p><div><strong>Respon com a {user.displayName || "docent Educand"}</strong><span>El teu nom i correu s’adjuntaran automàticament a la resposta.</span></div></section>
             <form className="public-form" onSubmit={submit}>
-              {form.questions.map((question, index) => (
+              {form.questions.filter(isQuestionVisible).map((question, index) => (
                 <fieldset className="public-question" id={`question-${question.id}`} key={question.id}>
                   <legend><span>{index + 1}</span>{question.label}{question.required && <b>*</b>}</legend>
                   {question.type === "short_text" && <input value={answers[question.id] || ""} maxLength="300" onChange={(event) => setAnswer(question.id, event.target.value)} />}
