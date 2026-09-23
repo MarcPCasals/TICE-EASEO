@@ -31,6 +31,7 @@ import PublicFormPage from "./PublicFormPage";
 import ResourceCollectionPage from "./ResourceCollectionPage";
 import FormattedContent from "./FormattedContent";
 import { aiPrivacyArticleContent } from "./content/aiPrivacyArticle";
+import { phishingEmailArticleContent } from "./content/phishingEmailArticle";
 import { promptRubriquesContent } from "./content/promptRubriques";
 import {
   competencyTestGuidance,
@@ -57,6 +58,25 @@ const previewReminders = [
 
 const resources = [
   {
+    id: "reconeixer-correu-pesca-credencials",
+    source: "seed",
+    type: "Article",
+    resourceType: "article",
+    category: "Google i Chrome",
+    title: "Com reconèixer un correu de pesca de credencials",
+    summary: "Una pausa de trenta segons pot protegir tot un compte: què hem de comprovar, com hem d’actuar i com ho podem ensenyar a l’alumnat.",
+    status: "Disponible",
+    date: "23 set. 2026",
+    sortDate: new Date("2026-09-23T12:00:00+02:00").getTime(),
+    image: "/phishing-correu-capcalera.jpg",
+    imageAlt: "Una docent s’atura a revisar un correu abans de clicar en cap enllaç.",
+    imageCaption: "Davant d’un missatge urgent, la primera resposta ha de ser una pausa per verificar-lo.",
+    keywords: "correu pesca phishing credencials seguretat digital contrasenya gmail compte educand alumnat aula",
+    content: phishingEmailArticleContent,
+    featured: true,
+    publicationStatus: "published",
+  },
+  {
     id: "dades-alumnat-ia",
     source: "seed",
     type: "Article",
@@ -69,6 +89,7 @@ const resources = [
     sortDate: new Date("2026-09-18T12:00:00+02:00").getTime(),
     image: "/dades-ia-capcalera.jpg",
     imageAlt: "Una docent elimina dades identificatives d’un document abans de consultar una eina d’intel·ligència artificial.",
+    imageCaption: "Abans de consultar una IA, cal retirar qualsevol dada que pugui identificar un alumne.",
     keywords: "intel·ligència artificial dades alumnat privacitat anonimització protecció pedagogia aula",
     content: aiPrivacyArticleContent,
     featured: true,
@@ -328,7 +349,7 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
           <div className="dialog-video"><iframe src={videoUrl} title={resource.title} allow="autoplay; fullscreen" allowFullScreen /></div>
           <div className="dialog-copy video-actions">{resourceActions}</div>
         </> : resource.resourceType === "article" ? <>
-          {resource.image && <figure className="article-hero"><img className="dialog-image" src={resource.image} alt={resource.imageAlt || "Imatge de capçalera de l’article"} /><figcaption>Abans de consultar una IA, cal retirar qualsevol dada que pugui identificar un alumne.</figcaption></figure>}
+          {resource.image && <figure className="article-hero"><img className="dialog-image" src={resource.image} alt={resource.imageAlt || "Imatge de capçalera de l’article"} />{resource.imageCaption && <figcaption>{resource.imageCaption}</figcaption>}</figure>}
           <div className="dialog-copy article-copy">{introduction}{resourceActions}</div>
         </> : <>
           {resource.image && <img className="dialog-image" src={resource.image} alt={resource.imageAlt || "Imatge del recurs"} />}
