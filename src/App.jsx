@@ -31,7 +31,7 @@ import PublicFormPage from "./PublicFormPage";
 import ResourceCollectionPage from "./ResourceCollectionPage";
 import FormattedContent from "./FormattedContent";
 import { aiPrivacyArticleContent } from "./content/aiPrivacyArticle";
-import { phishingEmailArticleContent } from "./content/phishingEmailArticle";
+import { reviewAiResponseArticleContent } from "./content/reviewAiResponseArticle";
 import { promptRubriquesContent } from "./content/promptRubriques";
 import {
   competencyTestGuidance,
@@ -58,21 +58,21 @@ const previewReminders = [
 
 const resources = [
   {
-    id: "reconeixer-correu-pesca-credencials",
+    id: "cinc-revisions-resposta-ia",
     source: "seed",
     type: "Article",
     resourceType: "article",
-    category: "Google i Chrome",
-    title: "Com reconèixer un correu de pesca de credencials",
-    summary: "Una pausa de trenta segons pot protegir tot un compte: què hem de comprovar, com hem d’actuar i com ho podem ensenyar a l’alumnat.",
+    category: "IA bàsica",
+    title: "Cinc coses que sempre hem de revisar abans d’utilitzar una resposta d’IA",
+    summary: "Una rutina docent per comprovar la fiabilitat, les fonts, l’objectiu pedagògic, l’adequació al grup i les decisions que no podem delegar.",
     status: "Disponible",
-    date: "23 set. 2026",
-    sortDate: new Date("2026-09-23T12:00:00+02:00").getTime(),
-    image: "/phishing-correu-capcalera.jpg",
-    imageAlt: "Una docent s’atura a revisar un correu abans de clicar en cap enllaç.",
-    imageCaption: "Davant d’un missatge urgent, la primera resposta ha de ser una pausa per verificar-lo.",
-    keywords: "correu pesca phishing credencials seguretat digital contrasenya gmail compte educand alumnat aula",
-    content: phishingEmailArticleContent,
+    date: "24 set. 2026",
+    sortDate: new Date("2026-09-24T12:00:00+02:00").getTime(),
+    image: "/revisar-resposta-ia-capcalera.jpg",
+    imageAlt: "Una docent contrasta un material generat amb IA amb altres fonts abans d’utilitzar-lo a classe.",
+    imageCaption: "Una resposta d’IA només es converteix en material d’aula després d’una revisió docent.",
+    keywords: "intel·ligència artificial revisar resposta fonts verificació biaixos objectiu pedagògic alumnat aula criteri docent",
+    content: reviewAiResponseArticleContent,
     featured: true,
     publicationStatus: "published",
   },
