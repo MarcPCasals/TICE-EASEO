@@ -30,6 +30,8 @@ import AdminWorkspace from "./AdminWorkspace";
 import PublicFormPage from "./PublicFormPage";
 import ResourceCollectionPage from "./ResourceCollectionPage";
 import FormattedContent from "./FormattedContent";
+import ResourceTags from "./ResourceTags";
+import { getPublicationTagLabels, normalizePublicationTags } from "./publicationTags";
 import { aiPrivacyArticleContent } from "./content/aiPrivacyArticle";
 import { reviewAiResponseArticleContent } from "./content/reviewAiResponseArticle";
 import { promptRubriquesContent } from "./content/promptRubriques";
@@ -68,6 +70,7 @@ const resources = [
     status: "Disponible",
     date: "24 set. 2026",
     sortDate: new Date("2026-09-24T11:30:00+02:00").getTime(),
+    tags: ["teacher-organization", "communication-teams"],
     keywords: "google contactes etiquetes afegir contacte existent nou docent incorporació correu educand",
     content: "Les etiquetes de Google Contactes permeten tenir agrupades les persones a qui envies correus habitualment. Però durant el curs pot incorporar-se un docent nou o pot ser que algun contacte no aparegués al document importat a l’inici.\n\nEn aquest tutorial veuràs com:\n- afegir a una etiqueta un contacte que ja tens desat;\n- crear un contacte nou quan encara no existeix;\n- assignar-lo a l’etiqueta adequada perquè quedi inclòs en els futurs enviaments.\n\nEt servirà per mantenir les llistes de contactes actualitzades sense haver de tornar a fer tota la importació.",
     externalUrl: "https://drive.google.com/file/d/1uwlZxdXGy3m0nFySNYLJLLRPk4pq8AuO/view?usp=drive_link",
@@ -85,6 +88,7 @@ const resources = [
     status: "Disponible",
     date: "24 set. 2026",
     sortDate: new Date("2026-09-24T11:00:00+02:00").getTime(),
+    tags: ["start-of-year", "teacher-organization"],
     keywords: "google contactes importar inici curs etiquetes duplicats correu document csv educand",
     content: "A l’inici de curs pots importar en un sol procés el document amb els contactes i les etiquetes que se t’ha facilitat. Així tindràs preparats els grups de destinataris i no hauràs d’afegir cada persona manualment.\n\nEn aquest tutorial veuràs com:\n- importar correctament el document de contactes;\n- comprovar que els contactes han quedat associats a les etiquetes previstes;\n- detectar i gestionar contactes duplicats perquè una mateixa persona no rebi el correu més d’una vegada.\n\nEt servirà per començar el curs amb una agenda ordenada i amb les llistes de correu a punt per utilitzar.",
     externalUrl: "https://drive.google.com/file/d/1J9wb34VX01q0iHHtgcGu4MQarvVV82ZU/view?usp=drive_link",
@@ -102,6 +106,7 @@ const resources = [
     status: "Disponible",
     date: "24 set. 2026",
     sortDate: new Date("2026-09-24T10:30:00+02:00").getTime(),
+    tags: ["communication-teams", "teacher-organization"],
     keywords: "google groups grups correu equip membres preferències permisos comunicació educand",
     content: "Google Groups és una eina que permet reunir diverses persones dins d’un mateix grup i comunicar-t’hi mitjançant una única adreça de correu. En l’àmbit educatiu pot ser útil per escriure a un equip docent, una comissió o un altre col·lectiu estable sense haver de seleccionar tots els destinataris cada vegada.\n\nEn aquest tutorial veuràs com:\n- crear un grup i definir-ne la informació bàsica;\n- afegir-hi i gestionar-ne els membres;\n- configurar les preferències i el funcionament del grup;\n- aprofitar els avantatges d’una adreça única per simplificar la comunicació.\n\nEt servirà per centralitzar els enviaments, mantenir actualitzats els destinataris i gestionar de manera més pràctica la comunicació d’un equip.",
     externalUrl: "https://drive.google.com/file/d/1BR-7rGRKpQ1zGuoii_OpBOvEdYFnpwjv/view?usp=drive_link",
@@ -122,6 +127,7 @@ const resources = [
     image: "/revisar-resposta-ia-capcalera.jpg",
     imageAlt: "Una docent contrasta un material generat amb IA amb altres fonts abans d’utilitzar-lo a classe.",
     imageCaption: "Una resposta d’IA només es converteix en material d’aula després d’una revisió docent.",
+    tags: ["general-interest", "classroom-preparation"],
     keywords: "intel·ligència artificial revisar resposta fonts verificació biaixos objectiu pedagògic alumnat aula criteri docent",
     content: reviewAiResponseArticleContent,
     featured: true,
@@ -141,6 +147,7 @@ const resources = [
     image: "/dades-ia-capcalera.jpg",
     imageAlt: "Una docent elimina dades identificatives d’un document abans de consultar una eina d’intel·ligència artificial.",
     imageCaption: "Abans de consultar una IA, cal retirar qualsevol dada que pugui identificar un alumne.",
+    tags: ["security-privacy", "classroom-preparation"],
     keywords: "intel·ligència artificial dades alumnat privacitat anonimització protecció pedagogia aula",
     content: aiPrivacyArticleContent,
     featured: true,
@@ -156,6 +163,7 @@ const resources = [
     summary: "Augmenta la seguretat del teu compte en pocs minuts. Una guia clara, pas a pas, per activar la verificació en dos passos.",
     status: "Vídeo en preparació",
     image: "/two-step-verification.png",
+    tags: ["general-interest", "security-privacy"],
     keywords: "google educand autenticació verificació dos passos seguretat compte vídeo tutorial",
     content: "En aquest videotutorial veuràs com activar l’autenticació de dos passos i revisar els mètodes de verificació del compte.",
     externalUrl: "https://drive.google.com/file/d/1FxOvd7OpkqWRVZx3w3SCpae2mqy6XH7L/view?usp=drive_link",
@@ -172,6 +180,7 @@ const resources = [
     summary: "Un model de prompt per adaptar i generar rúbriques clares, coherents i alineades amb les competències.",
     status: "Prompt en preparació",
     date: "15 set. 2026",
+    tags: ["assessment", "classroom-preparation"],
     keywords: "prompt rúbriques avaluació competències chatgpt gemini claude",
     content: promptRubriquesContent,
     externalUrl: "/prompt-rubriques-ae.docx",
@@ -188,6 +197,7 @@ const resources = [
     summary: "Adjunta la rúbrica i els materials de classe: la IA et farà les preguntes imprescindibles i prepararà una prova alineada amb els aprenentatges esperats.",
     status: "Disponible",
     date: "18 set. 2026",
+    tags: ["assessment", "classroom-preparation"],
     keywords: "prompt guiat prova competencial rúbrica aprenentatges esperats materials preguntes avaluació",
     guidance: competencyTestGuidance,
     content: competencyTestPrompt,
@@ -204,6 +214,7 @@ const resources = [
     summary: "Converteix un material a un nivell inferior o superior mitjançant una conversa que diferencia l’accés, les bastides i els aprenentatges avaluats.",
     status: "Disponible",
     date: "18 set. 2026",
+    tags: ["classroom-preparation"],
     keywords: "prompt guiat adaptació nivell curs prova material bastides accessibilitat diversitat",
     guidance: levelAdaptationGuidance,
     content: levelAdaptationPrompt,
@@ -220,6 +231,7 @@ const resources = [
     summary: "Una revisió guiada per millorar la claredat, l’estructura, el nivell o l’accessibilitat d’un material sense perdre’n la intenció pedagògica.",
     status: "Disponible",
     date: "18 set. 2026",
+    tags: ["classroom-preparation"],
     keywords: "prompt guiat revisar millorar material docent claredat estructura accessibilitat",
     guidance: materialReviewGuidance,
     content: materialReviewPrompt,
@@ -236,6 +248,7 @@ const resources = [
     summary: "Una comparativa clara i pràctica per triar l’eina adequada segons l’objectiu, el tipus de tasca i el context educatiu.",
     status: "Article en preparació",
     date: "12 set. 2026",
+    tags: ["general-interest", "classroom-preparation"],
     keywords: "gemini chatgpt claude comparativa intel·ligència artificial eina quan",
     featured: false,
     publicationStatus: "published",
@@ -359,6 +372,7 @@ function ResourceDialog({ resource, resources: allResources, user, onRate, onAsk
   const introduction = <>
     <span className="content-type">{resource.type}</span>
     <h2 id="resource-title">{resource.title}</h2>
+    <ResourceTags tags={resource.tags} className="resource-dialog-tags" />
     <p>{resource.summary}</p>
     {resource.guidance && <FormattedContent content={resource.guidance} className="resource-guidance" />}
     {resource.content ? resource.resourceType === "prompt" ? (
@@ -540,6 +554,7 @@ function App() {
             guidance: resources.find((seedResource) => seedResource.title === data.title)?.guidance || "",
             content: data.content,
             externalUrl: data.externalUrl,
+            tags: normalizePublicationTags(data.tags),
             featured: Boolean(data.featured),
             scheduledFor: data.scheduledFor || "",
             status: data.status === "published" ? "Publicat" : data.status === "scheduled" ? "Programat" : "Esborrany",
@@ -660,7 +675,7 @@ function App() {
   const matches = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("ca");
     if (!needle) return displayResources;
-    return displayResources.filter((resource) => `${resource.title} ${resource.summary} ${resource.category} ${resource.keywords}`.toLocaleLowerCase("ca").includes(needle));
+    return displayResources.filter((resource) => `${resource.title} ${resource.summary} ${resource.category} ${resource.keywords} ${getPublicationTagLabels(resource.tags).join(" ")}`.toLocaleLowerCase("ca").includes(needle));
   }, [displayResources, query]);
 
   const handleSignIn = async () => {
@@ -854,7 +869,7 @@ function App() {
         <section className="editorial-grid" id="recursos">
           <article className="featured-resource" id="videotutorials">
             <div className="featured-copy">
-              <span className="content-type">Últim recurs</span><h2>{displayResources[0].title}</h2><p>{displayResources[0].summary}</p>
+              <span className="content-type">Últim recurs</span><h2>{displayResources[0].title}</h2><ResourceTags tags={displayResources[0].tags} /><p>{displayResources[0].summary}</p>
               <button className="primary-button" type="button" onClick={() => setSelectedResource(displayResources[0])}>Veure la guia completa <ArrowRight weight="bold" /></button>
             </div>
             <button className="featured-image-button" type="button" onClick={() => setSelectedResource(displayResources[0])} aria-label={`Obrir: ${displayResources[0].title}`}>
@@ -870,7 +885,7 @@ function App() {
             {displayResources.slice(1).map((resource) => (
               <button className="update-row" type="button" key={resource.id} onClick={() => setSelectedResource(resource)}>
                 <span className="update-icon">{resource.id === "prompt-rubriques" ? <FileText /> : <BookOpen />}</span>
-                <span className="update-copy"><small>{resource.type}</small><strong>{resource.title}</strong><span>{resource.summary}</span><time>{resource.date}</time></span>
+                <div className="update-copy"><small>{resource.type}</small><strong>{resource.title}</strong><ResourceTags tags={resource.tags} className="update-tags" /><span>{resource.summary}</span><time>{resource.date}</time></div>
               </button>
             ))}
           </aside>

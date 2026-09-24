@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight, BookOpen, FileText, ImagesSquare, Sparkle, Star, VideoCamera } from "@phosphor-icons/react";
+import ResourceTags from "./ResourceTags";
 
 const typeDetails = {
   video: { label: "Videotutorials", icon: VideoCamera },
@@ -17,6 +18,7 @@ function ResourceCard({ resource, onOpen }) {
       <span className="library-card-copy">
         <small>{resource.type || details.label}</small>
         <strong>{resource.title}</strong>
+        <ResourceTags tags={resource.tags} />
         <span>{resource.summary}</span>
         <em>{resource.category}</em>
       </span>

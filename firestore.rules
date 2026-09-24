@@ -128,6 +128,7 @@ service cloud.firestore {
           'title',
           'summary',
           'category',
+          'tags',
           'keywords',
           'content',
           'externalUrl',
@@ -144,6 +145,18 @@ service cloud.firestore {
         && request.resource.data.title is string
         && request.resource.data.summary is string
         && request.resource.data.category is string
+        && request.resource.data.tags is list
+        && request.resource.data.tags.size() <= 2
+        && request.resource.data.tags.hasOnly([
+          'general-interest',
+          'start-of-year',
+          'teacher-organization',
+          'communication-teams',
+          'classroom-preparation',
+          'assessment',
+          'security-privacy',
+          'troubleshooting'
+        ])
         && request.resource.data.keywords is list
         && request.resource.data.content is string
         && request.resource.data.externalUrl is string
@@ -153,6 +166,18 @@ service cloud.firestore {
       allow update: if isAdmin()
         && request.resource.data.authorEmail == request.auth.token.email
         && request.resource.data.status in ['draft', 'published', 'scheduled']
+        && request.resource.data.tags is list
+        && request.resource.data.tags.size() <= 2
+        && request.resource.data.tags.hasOnly([
+          'general-interest',
+          'start-of-year',
+          'teacher-organization',
+          'communication-teams',
+          'classroom-preparation',
+          'assessment',
+          'security-privacy',
+          'troubleshooting'
+        ])
         && request.resource.data.featured is bool
         && request.resource.data.scheduledFor is string
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -161,6 +186,7 @@ service cloud.firestore {
           'title',
           'summary',
           'category',
+          'tags',
           'keywords',
           'content',
           'externalUrl',

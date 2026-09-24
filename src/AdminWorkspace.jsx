@@ -32,6 +32,8 @@ import ReminderBoard from "./ReminderBoard";
 import AdminDashboard from "./AdminDashboard";
 import FormManager from "./FormManager";
 import FormattedContent from "./FormattedContent";
+import ResourceTags from "./ResourceTags";
+import { normalizePublicationTags, PUBLICATION_TAGS } from "./publicationTags";
 
 const publicationTypes = [
   { id: "video", label: "Vídeo", publicLabel: "Videotutorial", icon: VideoCamera },
@@ -56,6 +58,7 @@ const initialForm = {
   title: "Com activar l’autenticació de dos passos al compte Educand?",
   summary: "Una guia clara, pas a pas, per activar la verificació en dos passos i protegir millor el compte Educand.",
   category: "Google i Chrome",
+  tags: ["general-interest", "security-privacy"],
   keywords: "Google, Educand, autenticació, verificació, dos passos, seguretat",
   content: "En aquest videotutorial veuràs com activar l’autenticació de dos passos i revisar els mètodes de verificació del compte.",
   externalUrl: "https://drive.google.com/file/d/1FxOvd7OpkqWRVZx3w3SCpae2mqy6XH7L/view?usp=drive_link",
@@ -124,6 +127,15 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
     setError("");
   };
 
+  const toggleTag = (tagId) => {
+    const currentTags = normalizePublicationTags(form.tags);
+    if (currentTags.includes(tagId)) {
+      changeField("tags", currentTags.filter((tag) => tag !== tagId));
+      return;
+    }
+    if (currentTags.length < 2) changeField("tags", [...currentTags, tagId]);
+  };
+
   const formatSelection = (before, after, placeholder) => {
     const editor = contentEditorRef.current;
     if (!editor) return;
@@ -173,6 +185,7 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
       title: publication.title || "",
       summary: publication.summary || "",
       category: publication.category || categories[0],
+      tags: normalizePublicationTags(publication.tags),
       keywords: Array.isArray(publication.keywords) ? publication.keywords.join(", ") : publication.keywords || "",
       content: publication.content || "",
       externalUrl: publication.externalUrl || "",
@@ -192,6 +205,7 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
       title: `${publication.title || "Publicació"} — còpia`,
       summary: publication.summary || "",
       category: publication.category || categories[0],
+      tags: normalizePublicationTags(publication.tags),
       keywords: Array.isArray(publication.keywords) ? publication.keywords.join(", ") : publication.keywords || "",
       content: publication.content || "",
       externalUrl: publication.externalUrl || "",
@@ -242,6 +256,7 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
       title: form.title.trim(),
       summary: form.summary.trim(),
       category: form.category,
+      tags: normalizePublicationTags(form.tags),
       keywords,
       content: form.content.trim(),
       externalUrl: form.externalUrl.trim(),
@@ -299,6 +314,7 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
             <button className="publication-admin-main" type="button" onClick={() => editPublication(publication)}>
               <span className={`publication-state state-${publication.publicationStatus || "published"}`}>{publication.source === "seed" ? "Proposta inicial" : publication.publicationStatus === "draft" ? "Esborrany" : publication.publicationStatus === "scheduled" ? new Date(publication.scheduledFor).getTime() <= Date.now() ? "Publicada automàticament" : "Programada" : "Publicada"}</span>
               <strong>{publication.title}</strong><small>{publication.category} · {publication.type}</small>
+              <ResourceTags tags={publication.tags} className="publication-admin-tags" />
             </button>
             {publication.featured && <span className="publication-featured" title="Destacada"><Star weight="fill" /></span>}
             <button className="publication-admin-duplicate" type="button" onClick={() => duplicatePublication(publication)} aria-label={`Duplicar ${publication.title}`}><Copy /></button>
@@ -329,6 +345,18 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
             <label className="field-wide"><span className="field-label">Descripció breu <b>*</b></span><textarea rows="3" value={form.summary} maxLength="300" onChange={(event) => changeField("summary", event.target.value)} placeholder="Explica en poques paraules què hi trobaran" /><small>{form.summary.length}/300</small></label>
             <label><span className="field-label">Temàtica <b>*</b></span><select value={form.category} onChange={(event) => changeField("category", event.target.value)}>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
             <label><span className="field-label">Paraules clau</span><input value={form.keywords} onChange={(event) => changeField("keywords", event.target.value)} placeholder="IA, avaluació, rúbriques…" /><small>Separa-les amb comes.</small></label>
+            <fieldset className="field-wide publication-tag-field">
+              <legend><span className="field-label">Etiquetes de la publicació</span><small>{normalizePublicationTags(form.tags).length}/2 seleccionades</small></legend>
+              <p>Tria com a màxim dues etiquetes per situar ràpidament la publicació.</p>
+              <div className="publication-tag-picker">
+                {PUBLICATION_TAGS.map((tag) => {
+                  const selectedTags = normalizePublicationTags(form.tags);
+                  const selected = selectedTags.includes(tag.id);
+                  const disabled = !selected && selectedTags.length >= 2;
+                  return <button className={selected ? "selected" : ""} type="button" key={tag.id} onClick={() => toggleTag(tag.id)} aria-pressed={selected} disabled={disabled}>{tag.label}</button>;
+                })}
+              </div>
+            </fieldset>
             <label className="field-wide featured-toggle"><input type="checkbox" checked={Boolean(form.featured)} onChange={(event) => changeField("featured", event.target.checked)} /><span><Star weight={form.featured ? "fill" : "regular"} /><b>Destacar aquesta publicació</b><small>Apareixerà a la pàgina de Destacats, ordenada pel seu tipus.</small></span></label>
             <div className="field-wide content-editor-label"><label className="field-label" htmlFor="publication-content">{contentLabel(form.type)} <b>*</b></label>
               <div className="editor-toolbar" role="toolbar" aria-label="Format del contingut">
@@ -364,7 +392,7 @@ export default function AdminWorkspace({ user, onClose, onPublicationSaved, onPu
             <h2>Avui al Racó</h2>
             <article className="preview-resource">
               <span className="preview-resource-icon"><PreviewIcon /></span>
-              <div><small>{selectedType.publicLabel}</small><h3>{previewTitle}</h3><p>{previewSummary}</p></div>
+              <div><small>{selectedType.publicLabel}</small><h3>{previewTitle}</h3><ResourceTags tags={form.tags} /><p>{previewSummary}</p></div>
             </article>
             <FormattedContent content={previewContent} className="preview-content" />
             <div className="preview-meta"><span>{form.category || "Temàtica"}</span><span>{keywords.length ? keywords.join(" · ") : "Paraules clau"}</span></div>
