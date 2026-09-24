@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 
-const inlinePattern = /(\[violeta\][\s\S]*?\[\/violeta\]|\[taronja\][\s\S]*?\[\/taronja\]|\*\*[\s\S]*?\*\*|\*[\s\S]*?\*|\[[^\]]+\]\(https?:\/\/[^)]+\))/g;
+const inlinePattern = /(\[violeta\][\s\S]*?\[\/violeta\]|\[taronja\][\s\S]*?\[\/taronja\]|\[(?:A INDICAR|OPCIONAL)[^\]]*\]|\*\*[\s\S]*?\*\*|\*[\s\S]*?\*|\[[^\]]+\]\(https?:\/\/[^)]+\))/g;
 
 function formatInlineText(text, keyPrefix = "inline") {
   return text.split(inlinePattern).filter(Boolean).map((part, index) => {
@@ -10,6 +10,9 @@ function formatInlineText(text, keyPrefix = "inline") {
     }
     if (part.startsWith("[taronja]") && part.endsWith("[/taronja]")) {
       return <span className="text-orange" key={key}>{formatInlineText(part.slice(9, -10), key)}</span>;
+    }
+    if (/^\[(?:A INDICAR|OPCIONAL)/.test(part)) {
+      return <span className="text-red" key={key}>{part}</span>;
     }
     if (part.startsWith("**") && part.endsWith("**")) {
       return <strong key={key}>{formatInlineText(part.slice(2, -2), key)}</strong>;

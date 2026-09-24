@@ -34,7 +34,7 @@ import ResourceTags from "./ResourceTags";
 import { getPublicationTagLabels, normalizePublicationTags } from "./publicationTags";
 import { aiPrivacyArticleContent } from "./content/aiPrivacyArticle";
 import { reviewAiResponseArticleContent } from "./content/reviewAiResponseArticle";
-import { promptRubriquesContent } from "./content/promptRubriques";
+import { promptRubriquesContent, promptRubriquesGuidance } from "./content/promptRubriques";
 import {
   competencyTestGuidance,
   competencyTestPrompt,
@@ -173,15 +173,16 @@ const resources = [
   {
     id: "prompt-rubriques",
     source: "seed",
-    type: "Recurs destacat",
+    type: "Prompt guiat",
     resourceType: "prompt",
     category: "Biblioteca de prompts",
-    title: "Prompt per fer les rúbriques d’avaluació",
-    summary: "Un model de prompt per adaptar i generar rúbriques clares, coherents i alineades amb les competències.",
-    status: "Prompt en preparació",
+    title: "Crear una rúbrica d’avaluació per a qualsevol matèria",
+    summary: "Una versió ampliada del model del centre que et pregunta la matèria, el curs, els aprenentatges, la tasca i l’escala abans de crear la rúbrica.",
+    status: "Disponible",
     date: "15 set. 2026",
     tags: ["assessment", "classroom-preparation"],
-    keywords: "prompt rúbriques avaluació competències chatgpt gemini claude",
+    keywords: "prompt guiat rúbriques avaluació competències matèria assignatura curs aprenentatges criteris escala chatgpt gemini claude",
+    guidance: promptRubriquesGuidance,
     content: promptRubriquesContent,
     externalUrl: "/prompt-rubriques-ae.docx",
     featured: true,

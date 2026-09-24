@@ -266,6 +266,7 @@ footer strong { color: var(--navy); }
 .resource-list-item { display: grid; grid-template-columns: 1.7rem minmax(0, 1fr); gap: 0.15rem; }
 .text-violet { color: #8b45a4; }
 .text-orange { color: var(--orange); }
+.text-red { color: #c62828; font-weight: 700; }
 .resource-content-space { display: block; height: 0.45rem; }
 .resource-content.article-content { max-height: none; overflow: visible; margin-top: 32px; padding: 0; border: 0; background: transparent; }
 .resource-link { width: fit-content; text-decoration: none; }
