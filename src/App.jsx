@@ -334,20 +334,147 @@ const resources = [
     publicationStatus: "published",
   },
   {
-    id: "doble-autenticacio",
+    id: "pi-informacio-general-guia-conductor",
     source: "seed",
     type: "Videotutorial",
     resourceType: "video",
-    category: "Google i Chrome",
-    title: "Com activar l’autenticació de dos passos al compte Educand?",
-    summary: "Augmenta la seguretat del teu compte en pocs minuts. Una guia clara, pas a pas, per activar la verificació en dos passos.",
-    status: "Vídeo en preparació",
-    image: "/two-step-verification.png",
-    tags: ["general-interest", "security-privacy"],
-    keywords: "google educand autenticació verificació dos passos seguretat compte vídeo tutorial",
-    content: "En aquest videotutorial veuràs com activar l’autenticació de dos passos i revisar els mètodes de verificació del compte.",
+    category: "Projecte Integrador",
+    title: "Projecte Integrador: informació general i guia per al conductor",
+    summary: "Una visió completa del PI: funcionament general, fases del projecte, consells, exemples i recursos per a la conducció.",
+    status: "Disponible",
+    date: "25 set. 2026",
+    sortDate: new Date("2026-09-25T12:00:00+02:00").getTime(),
+    tags: ["general-interest", "teacher-organization"],
+    keywords: "projecte integrador PI informació general fases conductor guia consells exemples",
+    content: "Aquest tutorial és el punt de partida per entendre el funcionament global del Projecte Integrador i el paper del conductor durant tot el procés.\n\nHi trobaràs:\n- una introducció general al PI;\n- l’explicació de les diferents fases del projecte des de la mirada del conductor;\n- consells i exemples per acompanyar l’alumnat;\n- la guia i els recursos de consulta per al conductor.\n\nEt servirà tant per iniciar-te en el PI com per revisar el recorregut complet abans d’acompanyar un nou grup.",
     externalUrl: "https://drive.google.com/file/d/1FxOvd7OpkqWRVZx3w3SCpae2mqy6XH7L/view?usp=drive_link",
-    featured: true,
+    featured: false,
+    publicationStatus: "published",
+  },
+  {
+    id: "pi-ambits-tipologies-idees-projecte",
+    source: "seed",
+    type: "Videotutorial",
+    resourceType: "video",
+    category: "Projecte Integrador",
+    title: "Àmbits i tipologies: una activitat per trobar idees per al PI",
+    summary: "Ajuda l’alumnat a explorar un banc de projectes i filtrar propostes fins a trobar idees relacionades amb els seus interessos.",
+    status: "Disponible",
+    date: "25 set. 2026",
+    sortDate: new Date("2026-09-25T11:55:00+02:00").getTime(),
+    tags: ["classroom-preparation", "general-interest"],
+    keywords: "projecte integrador PI àmbits tipologies activitat idees interessos banc projectes filtres alumnat",
+    content: "Quan l’alumnat encara no té clara la idea del seu Projecte Integrador, aquesta activitat li permet explorar possibilitats de manera guiada.\n\nEn aquest tutorial veuràs com funciona un banc de projectes organitzat per àmbits i tipologies, i com els filtres ajuden cada alumne a acotar les opcions segons els seus interessos.\n\nEt servirà per dinamitzar la fase inicial d’ideació, ampliar els referents de l’alumnat i facilitar que cada projecte parteixi d’una proposta significativa.",
+    externalUrl: "https://drive.google.com/file/d/1deWD76dlZHD02MaN26IeojEJEqFEr5eD/view?usp=sharing",
+    featured: false,
+    publicationStatus: "published",
+  },
+  {
+    id: "pi-gestio-alumnes-grup-classe",
+    source: "seed",
+    type: "Videotutorial",
+    resourceType: "video",
+    category: "Projecte Integrador",
+    title: "Gestió d’alumnes: com crear el grup classe del PI?",
+    summary: "Crea el teu grup classe dins l’eina del PI i incorpora-hi l’alumnat que acompanyaràs durant el projecte.",
+    status: "Disponible",
+    date: "25 set. 2026",
+    sortDate: new Date("2026-09-25T11:50:00+02:00").getTime(),
+    tags: ["start-of-year", "teacher-organization"],
+    keywords: "projecte integrador PI gestió alumnes crear grup classe introduir alumnat conductor",
+    content: "Abans de començar el seguiment dels projectes, cada conductor ha de tenir configurat el seu grup classe i l’alumnat corresponent.\n\nEn aquest tutorial veuràs com:\n- crear un grup classe dins l’eina del PI;\n- introduir-hi els alumnes;\n- comprovar que el grup queda preparat per començar a treballar.\n\nEt servirà per deixar l’espai de treball correctament organitzat abans d’obrir l’accés a l’alumnat.",
+    externalUrl: "https://drive.google.com/file/d/1aAY3k9YHV96CcN9vJ2mkij0s2sKVC868/view?usp=sharing",
+    featured: false,
+    publicationStatus: "published",
+  },
+  {
+    id: "pi-acces-alumnat-fitxa-inicial",
+    source: "seed",
+    type: "Videotutorial",
+    resourceType: "video",
+    category: "Projecte Integrador",
+    title: "Accés de l’alumnat i fitxa inicial del PI",
+    summary: "Dona permisos a l’alumnat, acompanya l’elaboració de la fitxa inicial i envia-la a direcció perquè la pugui validar.",
+    status: "Disponible",
+    date: "25 set. 2026",
+    sortDate: new Date("2026-09-25T11:45:00+02:00").getTime(),
+    tags: ["teacher-organization", "classroom-preparation"],
+    keywords: "projecte integrador PI accés alumnat permisos fitxa inicial enviar validació direcció conductor",
+    content: "Un cop creat el grup, cal donar accés a l’alumnat i posar en marxa la fitxa inicial, el document que concreta la primera proposta del projecte.\n\nEn aquest tutorial veuràs com:\n- concedir els permisos d’accés als alumnes;\n- entendre què recull la fitxa inicial i com s’ha de completar;\n- enviar-la a direcció perquè en faci la validació.\n\nEt servirà per acompanyar correctament el pas de la idea inicial a una proposta de projecte preparada per ser revisada.",
+    externalUrl: "https://drive.google.com/file/d/1ba4EP6c9LW2HumxGt9c-w65SUptlU4gc/view?usp=sharing",
+    featured: false,
+    publicationStatus: "published",
+  },
+  {
+    id: "pi-planificacio-seguiment",
+    source: "seed",
+    type: "Videotutorial",
+    resourceType: "video",
+    category: "Projecte Integrador",
+    title: "Planificació i seguiment del Projecte Integrador",
+    summary: "Configura la planificació del PI i utilitza la pantalla de seguiment per acompanyar l’evolució del projecte.",
+    status: "Disponible",
+    date: "25 set. 2026",
+    sortDate: new Date("2026-09-25T11:40:00+02:00").getTime(),
+    tags: ["teacher-organization", "classroom-preparation"],
+    keywords: "projecte integrador PI planificació seguiment pantalles configurar fases conductor evolució projecte",
+    content: "La planificació i el seguiment permeten convertir la proposta inicial en un procés de treball ordenat i visible per a l’alumne i el conductor.\n\nEn aquest tutorial trobaràs l’explicació de les dues pantalles i veuràs com:\n- configurar la planificació del projecte;\n- organitzar les fases, les tasques o les fites previstes;\n- consultar i actualitzar el seguiment durant el desenvolupament del PI.\n\nEt servirà per detectar l’estat del projecte, orientar els passos següents i mantenir una visió compartida del procés.",
+    externalUrl: "https://drive.google.com/file/d/1-QWJe2I7_TgAaP4qsn3C9TZnZyDSLLG_/view?usp=sharing",
+    featured: false,
+    publicationStatus: "published",
+  },
+  {
+    id: "pi-anotacions-alumne-conductor",
+    source: "seed",
+    type: "Videotutorial",
+    resourceType: "video",
+    category: "Projecte Integrador",
+    title: "Anotacions del PI: comunicació entre alumne i conductor",
+    summary: "Descobreix com utilitzar la pantalla d’anotacions per deixar constància de les orientacions i els intercanvis del projecte.",
+    status: "Disponible",
+    date: "25 set. 2026",
+    sortDate: new Date("2026-09-25T11:35:00+02:00").getTime(),
+    tags: ["communication-teams", "teacher-organization"],
+    keywords: "projecte integrador PI anotacions alumne conductor comunicació orientacions registre seguiment",
+    content: "La pantalla d’anotacions crea un espai compartit entre l’alumne i el conductor per registrar orientacions, acords i qüestions relacionades amb el projecte.\n\nEn aquest tutorial veuràs per a què serveix aquesta pantalla i com es pot incorporar al seguiment habitual del PI.\n\nEt servirà per mantenir un registre accessible dels intercanvis i evitar que les indicacions importants quedin disperses o es perdin.",
+    externalUrl: "https://drive.google.com/file/d/1lUOJ_Hs45mMLtjRz1aSj56v0mK_qwYSj/view?usp=sharing",
+    featured: false,
+    publicationStatus: "published",
+  },
+  {
+    id: "pi-materials-fixos",
+    source: "seed",
+    type: "Videotutorial",
+    resourceType: "video",
+    category: "Projecte Integrador",
+    title: "Materials del PI: recursos fixos sempre a l’abast",
+    summary: "Utilitza la pantalla de materials per reunir els documents i recursos fixos que l’alumnat necessitarà durant el projecte.",
+    status: "Disponible",
+    date: "25 set. 2026",
+    sortDate: new Date("2026-09-25T11:30:00+02:00").getTime(),
+    tags: ["classroom-preparation", "teacher-organization"],
+    keywords: "projecte integrador PI materials recursos documents fixos penjar alumnat conductor",
+    content: "La pantalla de materials funciona com un espai estable on deixar disponibles els documents i recursos de consulta comuns del Projecte Integrador.\n\nEn aquest tutorial veuràs com utilitzar-la per penjar els materials fixos del PI i mantenir-los accessibles durant tot el procés.\n\nEt servirà per centralitzar la documentació de referència i facilitar que l’alumnat la pugui trobar sense haver de cercar-la en diferents espais.",
+    externalUrl: "https://drive.google.com/file/d/1j3kLhCZTZF44sifl8kSfBLYcYyJ3ioO6/view?usp=sharing",
+    featured: false,
+    publicationStatus: "published",
+  },
+  {
+    id: "pi-avaluacio-mig-cami-final",
+    source: "seed",
+    type: "Videotutorial",
+    resourceType: "video",
+    category: "Projecte Integrador",
+    title: "Avaluació del PI: a mig camí i al final del projecte",
+    summary: "Coneix el funcionament de la pantalla d’avaluació en els dos moments del PI, tant per a l’alumnat com per als conductors.",
+    status: "Disponible",
+    date: "25 set. 2026",
+    sortDate: new Date("2026-09-25T11:25:00+02:00").getTime(),
+    tags: ["assessment", "teacher-organization"],
+    keywords: "projecte integrador PI avaluació mig camí final alumnat conductors pantalla rúbrica seguiment",
+    content: "L’avaluació del Projecte Integrador es treballa en dos moments: una revisió a mig camí, que permet orientar el procés, i una valoració final del projecte.\n\nEn aquest tutorial veuràs:\n- com funciona la pantalla d’avaluació;\n- què s’hi fa durant l’avaluació intermèdia i durant la final;\n- com hi participen l’alumnat i els conductors.\n\nEt servirà per entendre el circuit complet d’avaluació i preparar cada moment amb la informació i les accions corresponents.",
+    externalUrl: "https://drive.google.com/file/d/1VFFLMiQIcon2zGfxo2-Qv8PYoIX0tz62/view?usp=sharing",
+    featured: false,
     publicationStatus: "published",
   },
   {
@@ -439,6 +566,7 @@ const resources = [
 const topics = [
   { title: "Google i Chrome", subtitle: "Treballa millor", icon: GoogleChromeLogo, query: "Google" },
   { title: "Gestió acadèmica", subtitle: "Clickedu i seguiments", icon: MonitorPlay, query: "gestió acadèmica" },
+  { title: "Projecte Integrador", subtitle: "Guies del PI", icon: BookOpen, query: "projecte integrador" },
   { title: "IA bàsica", subtitle: "Comença des de zero", icon: Brain, query: "IA bàsica" },
   { title: "Eines d’IA", subtitle: "Recursos pràctics", icon: Wrench, query: "Eines IA" },
   { title: "Biblioteca de prompts", subtitle: "Idees llestes per usar", icon: FileText, query: "prompt" },
@@ -853,6 +981,8 @@ function App() {
   }, [publishedResources]);
 
   const featuredResources = useMemo(() => displayResources.filter((resource) => resource.featured), [displayResources]);
+  const leadResource = useMemo(() => displayResources.find((resource) => resource.image) || displayResources[0], [displayResources]);
+  const updateResources = useMemo(() => displayResources.filter((resource) => resource.id !== leadResource?.id), [displayResources, leadResource]);
 
   const matches = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("ca");
@@ -1051,11 +1181,11 @@ function App() {
         <section className="editorial-grid" id="recursos">
           <article className="featured-resource" id="videotutorials">
             <div className="featured-copy">
-              <span className="content-type">Últim recurs</span><h2>{displayResources[0].title}</h2><ResourceTags tags={displayResources[0].tags} /><p>{displayResources[0].summary}</p>
-              <button className="primary-button" type="button" onClick={() => setSelectedResource(displayResources[0])}>Veure la guia completa <ArrowRight weight="bold" /></button>
+              <span className="content-type">Recurs destacat</span><h2>{leadResource.title}</h2><ResourceTags tags={leadResource.tags} /><p>{leadResource.summary}</p>
+              <button className="primary-button" type="button" onClick={() => setSelectedResource(leadResource)}>Veure la guia completa <ArrowRight weight="bold" /></button>
             </div>
-            <button className="featured-image-button" type="button" onClick={() => setSelectedResource(displayResources[0])} aria-label={`Obrir: ${displayResources[0].title}`}>
-              <img src={displayResources[0].image} alt={displayResources[0].imageAlt || `Imatge de ${displayResources[0].title}`} /><span className="image-label">{displayResources[0].resourceType === "video" ? <MonitorPlay weight="fill" /> : <BookOpen weight="fill" />} {displayResources[0].type}</span>
+            <button className="featured-image-button" type="button" onClick={() => setSelectedResource(leadResource)} aria-label={`Obrir: ${leadResource.title}`}>
+              <img src={leadResource.image} alt={leadResource.imageAlt || `Imatge de ${leadResource.title}`} /><span className="image-label">{leadResource.resourceType === "video" ? <MonitorPlay weight="fill" /> : <BookOpen weight="fill" />} {leadResource.type}</span>
             </button>
           </article>
 
@@ -1064,7 +1194,7 @@ function App() {
               <div className="today-title-block"><span>Edició digital · setembre 2026</span><h2>Avui al Racó</h2></div>
               <a href="#recursos">Veure totes les novetats <ArrowRight /></a>
             </div>
-            {displayResources.slice(1).map((resource) => (
+            {updateResources.map((resource) => (
               <button className="update-row" type="button" key={resource.id} onClick={() => setSelectedResource(resource)}>
                 <span className="update-icon">{resource.id === "prompt-rubriques" ? <FileText /> : <BookOpen />}</span>
                 <div className="update-copy"><small>{resource.type}</small><strong>{resource.title}</strong><ResourceTags tags={resource.tags} className="update-tags" /><span>{resource.summary}</span><time>{resource.date}</time></div>
