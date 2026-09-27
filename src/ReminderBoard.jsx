@@ -117,7 +117,7 @@ export default function ReminderBoard({ reminders, onSave, onToggle, onDelete })
             <div><span className="content-type">{filter === "done" ? `${completedCount} ${completedCount === 1 ? "tasca completada" : "tasques completades"}` : "La teva llista"}</span><h2>{filter === "done" ? "Historial" : filter === "all" ? "Tots" : "Per fer"}</h2></div>
             <div className="reminder-filters" aria-label="Filtres de recordatoris"><button className={filter === "pending" ? "selected" : ""} type="button" onClick={() => setFilter("pending")}>Pendents</button><button className={filter === "done" ? "selected" : ""} type="button" onClick={() => setFilter("done")}>Historial <span>{completedCount}</span></button><button className={filter === "all" ? "selected" : ""} type="button" onClick={() => setFilter("all")}>Tots</button></div>
           </div>
-          {filter === "done" && completedCount > 0 && <p className="reminder-history-note">Aquí es conserva la feina que has anat resolent. La pots tornar a marcar com a pendent, però no s’elimina de l’historial.</p>}
+          {filter === "done" && completedCount > 0 && <p className="reminder-history-note">Aquí es conserva la feina que has anat resolent. Si una tasca torna a estar pendent, la pots recuperar amb el botó verd.</p>}
           <div className="reminder-list">
             {visibleReminders.length ? visibleReminders.map((reminder) => {
               const due = dateState(reminder.dueDate);
