@@ -1109,7 +1109,7 @@ function App() {
 
   const toggleReminder = async (reminder, completed) => {
     if (import.meta.env.DEV) {
-      setReminders((current) => current.map((item) => item.id === reminder.id ? { ...item, completed } : item));
+      setReminders((current) => current.map((item) => item.id === reminder.id ? { ...item, completed, completedAt: completed ? new Date() : null } : item));
       return;
     }
     await updateDoc(doc(db, "reminders", reminder.id), {

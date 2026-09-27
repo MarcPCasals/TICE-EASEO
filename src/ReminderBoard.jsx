@@ -18,6 +18,20 @@ function dateState(value) {
   return { label: readableDate(value), className: "" };
 }
 
+function timestampValue(value) {
+  if (!value) return 0;
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  if (value instanceof Date) return value.getTime();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+  return new Date(value).getTime() || 0;
+}
+
+function completedDate(value) {
+  const timestamp = timestampValue(value);
+  if (!timestamp) return "Data de resolució no disponible";
+  return `Fet el ${new Intl.DateTimeFormat("ca-AD", { day: "numeric", month: "long", year: "numeric" }).format(new Date(timestamp))}`;
+}
+
 const priorityOrder = { high: 0, medium: 1, low: 2 };
 const priorityLabels = { high: "Alta", medium: "Mitjana", low: "Baixa" };
 
@@ -30,11 +44,13 @@ export default function ReminderBoard({ reminders, onSave, onToggle, onDelete })
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const completedCount = reminders.filter((reminder) => reminder.completed).length;
 
   const visibleReminders = useMemo(() => reminders
     .filter((reminder) => filter === "all" || (filter === "done" ? reminder.completed : !reminder.completed))
     .sort((a, b) => {
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      if (a.completed && b.completed) return timestampValue(b.completedAt) - timestampValue(a.completedAt);
       if ((a.dueDate || "9999") !== (b.dueDate || "9999")) return (a.dueDate || "9999").localeCompare(b.dueDate || "9999");
       return priorityOrder[a.priority] - priorityOrder[b.priority];
     }), [filter, reminders]);
@@ -98,20 +114,21 @@ export default function ReminderBoard({ reminders, onSave, onToggle, onDelete })
 
         <div className="reminder-list-panel">
           <div className="reminder-list-heading">
-            <div><span className="content-type">La teva llista</span><h2>{filter === "done" ? "Fets" : filter === "all" ? "Tots" : "Per fer"}</h2></div>
-            <div className="reminder-filters" aria-label="Filtres de recordatoris"><button className={filter === "pending" ? "selected" : ""} type="button" onClick={() => setFilter("pending")}>Pendents</button><button className={filter === "done" ? "selected" : ""} type="button" onClick={() => setFilter("done")}>Fets</button><button className={filter === "all" ? "selected" : ""} type="button" onClick={() => setFilter("all")}>Tots</button></div>
+            <div><span className="content-type">{filter === "done" ? `${completedCount} ${completedCount === 1 ? "tasca completada" : "tasques completades"}` : "La teva llista"}</span><h2>{filter === "done" ? "Historial" : filter === "all" ? "Tots" : "Per fer"}</h2></div>
+            <div className="reminder-filters" aria-label="Filtres de recordatoris"><button className={filter === "pending" ? "selected" : ""} type="button" onClick={() => setFilter("pending")}>Pendents</button><button className={filter === "done" ? "selected" : ""} type="button" onClick={() => setFilter("done")}>Historial <span>{completedCount}</span></button><button className={filter === "all" ? "selected" : ""} type="button" onClick={() => setFilter("all")}>Tots</button></div>
           </div>
+          {filter === "done" && completedCount > 0 && <p className="reminder-history-note">Aquí es conserva la feina que has anat resolent. La pots tornar a marcar com a pendent, però no s’elimina de l’historial.</p>}
           <div className="reminder-list">
             {visibleReminders.length ? visibleReminders.map((reminder) => {
               const due = dateState(reminder.dueDate);
               return (
                 <article className={`reminder-item ${reminder.completed ? "completed" : ""}`} key={reminder.id}>
                   <button className="reminder-check" type="button" onClick={() => onToggle(reminder, !reminder.completed)} aria-label={reminder.completed ? "Tornar a marcar com a pendent" : "Marcar com a fet"}>{reminder.completed ? <Check weight="bold" /> : null}</button>
-                  <div className="reminder-copy"><h3>{reminder.title}</h3>{reminder.notes && <p>{reminder.notes}</p>}<div className="reminder-meta"><span className={`reminder-date ${due.className}`}><ClockCountdown />{due.label}</span><span className={`priority priority-${reminder.priority}`}><Flag weight="fill" />Prioritat {priorityLabels[reminder.priority]}</span></div></div>
-                  <div className="reminder-item-actions"><button type="button" onClick={() => editReminder(reminder)}><PencilSimple /> Editar</button><button type="button" onClick={() => { if (window.confirm(`Vols eliminar “${reminder.title}”?`)) onDelete(reminder.id); }}><Trash /> Eliminar</button></div>
+                  <div className="reminder-copy"><h3>{reminder.title}</h3>{reminder.notes && <p>{reminder.notes}</p>}<div className="reminder-meta">{reminder.completed ? <span className="reminder-completed-date"><SealCheck weight="fill" />{completedDate(reminder.completedAt)}</span> : <span className={`reminder-date ${due.className}`}><ClockCountdown />{due.label}</span>}<span className={`priority priority-${reminder.priority}`}><Flag weight="fill" />Prioritat {priorityLabels[reminder.priority]}</span></div></div>
+                  <div className="reminder-item-actions"><button type="button" onClick={() => editReminder(reminder)}><PencilSimple /> Editar</button>{!reminder.completed && <button type="button" onClick={() => { if (window.confirm(`Vols eliminar “${reminder.title}”?`)) onDelete(reminder.id); }}><Trash /> Eliminar</button>}</div>
                 </article>
               );
-            }) : <div className="reminder-empty"><SealCheck weight="duotone" /><h3>{filter === "done" ? "Encara no n’has completat cap" : "Tot fet per ara"}</h3><p>Quan afegeixis un recordatori, apareixerà aquí.</p></div>}
+            }) : <div className="reminder-empty"><SealCheck weight="duotone" /><h3>{filter === "done" ? "Encara no n’has completat cap" : "Tot fet per ara"}</h3><p>{filter === "done" ? "Quan marquis una tasca com a feta, quedarà guardada en aquest historial." : "Quan afegeixis un recordatori, apareixerà aquí."}</p></div>}
           </div>
         </div>
       </div>

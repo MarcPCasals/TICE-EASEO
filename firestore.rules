@@ -242,7 +242,7 @@ service cloud.firestore {
           'updatedAt'
         ]);
 
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() && resource.data.completed == false;
     }
 
     match /resourceFeedback/{feedbackId} {

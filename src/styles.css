@@ -544,6 +544,8 @@ footer strong { color: var(--navy); }
 .reminder-filters { display: flex; gap: 3px; padding-bottom: 2px; }
 .reminder-filters button { border: 0; padding: 7px 10px; color: var(--muted); background: rgba(255, 255, 255, 0.45); font-size: 0.67rem; font-weight: 700; cursor: pointer; }
 .reminder-filters button.selected { color: var(--navy); background: var(--violet-light); }
+.reminder-filters button span { min-width: 17px; display: inline-grid; place-items: center; margin-left: 3px; border-radius: 999px; padding: 1px 4px; color: var(--white); background: var(--navy); font-size: 0.56rem; }
+.reminder-history-note { margin: 14px 0 0; border-left: 3px solid #317f75; padding: 8px 11px; color: var(--muted); background: rgba(255, 255, 255, 0.45); font-size: 0.68rem; line-height: 1.5; }
 .reminder-list { display: grid; }
 .reminder-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 15px; padding: 21px 2px 20px; border-bottom: 1px solid rgba(23, 58, 94, 0.3); }
 .reminder-check { width: 31px; height: 31px; display: grid; place-items: center; margin-top: 2px; border: 2px solid var(--navy); border-radius: 50%; color: var(--white); background: rgba(255, 255, 255, 0.45); cursor: pointer; }
@@ -559,10 +561,11 @@ footer strong { color: var(--navy); }
 .reminder-date { color: var(--muted); }
 .reminder-date.today { color: #8f4fa4; }
 .reminder-date.overdue { color: #b74428; }
+.reminder-completed-date { color: #317f75; }
 .priority-high { color: #b74428; }
 .priority-medium { color: var(--orange); }
 .priority-low { color: #317f75; }
-.reminder-item.completed { opacity: 0.62; }
+.reminder-item.completed { opacity: 0.82; }
 .reminder-item.completed h3 { text-decoration: line-through; text-decoration-thickness: 1px; }
 .reminder-item-actions { display: flex; align-items: flex-start; gap: 4px; }
 .reminder-item-actions button, .reminder-cancel { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 6px; color: var(--muted); background: transparent; font-size: 0.6rem; font-weight: 700; cursor: pointer; }
