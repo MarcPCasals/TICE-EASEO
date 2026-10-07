@@ -469,8 +469,9 @@ footer strong { color: var(--navy); }
 .consultation-inbox { min-height: 610px; display: grid; grid-template-columns: minmax(330px, 0.78fr) minmax(0, 1.42fr); border-top: 5px double var(--navy); border-bottom: 1px solid var(--line); }
 .consultation-list-panel { min-width: 0; border-right: 1px solid var(--line); background: rgba(255, 255, 255, 0.36); }
 .consultation-filters { display: flex; gap: 3px; padding: 13px 14px; border-bottom: 1px solid var(--line); }
-.consultation-filters button { border: 0; padding: 7px 10px; color: var(--muted); background: transparent; font-size: 0.68rem; font-weight: 700; cursor: pointer; }
+.consultation-filters button { display: inline-flex; align-items: center; gap: 6px; border: 0; padding: 7px 10px; color: var(--muted); background: transparent; font-size: 0.68rem; font-weight: 700; cursor: pointer; }
 .consultation-filters button.selected { color: var(--navy); background: #f0e4f4; }
+.consultation-filters button > span { min-width: 18px; height: 18px; display: inline-grid; place-items: center; border-radius: 50%; color: var(--navy); background: var(--violet-light); font-size: 0.58rem; }
 .consultation-list { max-height: 570px; overflow: auto; }
 .consultation-row { position: relative; width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 12px; border: 0; border-bottom: 1px solid var(--line); padding: 17px 15px; background: transparent; text-align: left; cursor: pointer; }
 .consultation-row:hover, .consultation-row.selected { background: #f8f2e9; }

@@ -24,6 +24,9 @@ export default function ConsultationInbox({ consultations, onUpdateStatus, onCon
   const [filter, setFilter] = useState("open");
   const [selectedId, setSelectedId] = useState(consultations.find((item) => item.status !== "resolved")?.id || consultations[0]?.id || null);
   const [copied, setCopied] = useState(false);
+  const openCount = consultations.filter((item) => item.status !== "resolved").length;
+  const pendingCount = consultations.filter((item) => item.status === "new").length;
+  const resolvedCount = consultations.filter((item) => item.status === "resolved").length;
 
   const visibleConsultations = useMemo(() => {
     if (filter === "new") return consultations.filter((item) => item.status === "new");
@@ -58,9 +61,9 @@ export default function ConsultationInbox({ consultations, onUpdateStatus, onCon
       <div className="consultation-inbox">
         <aside className="consultation-list-panel">
           <div className="consultation-filters" aria-label="Filtres de consultes">
-            <button className={filter === "open" ? "selected" : ""} type="button" onClick={() => setFilter("open")}>Obertes</button>
-            <button className={filter === "new" ? "selected" : ""} type="button" onClick={() => setFilter("new")}>Pendents</button>
-            <button className={filter === "resolved" ? "selected" : ""} type="button" onClick={() => setFilter("resolved")}>Resoltes</button>
+            <button className={filter === "open" ? "selected" : ""} type="button" onClick={() => setFilter("open")}>Obertes <span>{openCount}</span></button>
+            <button className={filter === "new" ? "selected" : ""} type="button" onClick={() => setFilter("new")}>Pendents <span>{pendingCount}</span></button>
+            <button className={filter === "resolved" ? "selected" : ""} type="button" onClick={() => setFilter("resolved")}>Resoltes <span>{resolvedCount}</span></button>
           </div>
           <div className="consultation-list">
             {visibleConsultations.length ? visibleConsultations.map((consultation) => (
